@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/item1"
+            android:checked="false"
+            android:icon="@drawable/summary"
+            android:title="Anlık"/>
+
+        <item
+            android:id="@+id/item2"
+            android:checked="false"
+            android:icon="@drawable/overview"
+            android:title="Genel Bakış"/>
+
+        <item
+            android:id="@+id/item3"
+            android:checked="false"
+            android:icon="@drawable/settings"
+            android:title="Ayarlar"/>
+    </group>
+</menu>
