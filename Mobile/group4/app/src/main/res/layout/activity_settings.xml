@@ -4,7 +4,7 @@
     android:id="@+id/drawer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/drawer"
+    android:background="@drawable/teabackground"
     android:fitsSystemWindows="true"
     tools:context=".MainActivity">
 
@@ -12,9 +12,8 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/bg2"
-        android:transitionName="testAnimation"
-        tools:context=".InstantStateActivity">
+        android:background="@drawable/teabackground"
+        android:transitionName="testAnimation">
 
         <android.support.design.widget.BottomNavigationView
             android:id="@+id/bottom_navigation"
@@ -38,8 +37,7 @@
                 android:id="@+id/container"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_marginTop="30dp"
-                tools:context=".MainActivityFragment">
+                android:layout_marginTop="30dp">
 
                 <ImageView
                     android:id="@+id/referIcon"
@@ -51,17 +49,17 @@
                     android:layout_marginTop="60dp"
                     android:src="@drawable/bluetooth" />
 
-                <TextView
-                    android:id="@+id/referText"
-                    android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
+                <Button
+                    android:id="@+id/blt"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
                     android:layout_alignTop="@+id/referIcon"
                     android:layout_marginLeft="10dp"
                     android:layout_toEndOf="@+id/referIcon"
                     android:layout_toRightOf="@+id/referIcon"
+                    android:background="@drawable/blue_style"
                     android:paddingTop="15dp"
                     android:text="Bluetooth"
-                    android:textIsSelectable="true"
                     android:textSize="22dp" />
 
                 <ImageView
@@ -75,17 +73,17 @@
                     android:layout_marginTop="20dp"
                     android:src="@drawable/wifi" />
 
-                <TextView
-                    android:id="@+id/rateText"
+                <Button
+                    android:id="@+id/serv"
                     android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="50dp"
                     android:layout_alignTop="@+id/rateIcon"
                     android:layout_marginLeft="10dp"
                     android:layout_toEndOf="@+id/rateIcon"
                     android:layout_toRightOf="@+id/rateIcon"
+                    android:background="@drawable/yellow_style"
                     android:paddingTop="15dp"
-                    android:text="Wifi"
-                    android:textIsSelectable="true"
+                    android:text="Server"
                     android:textSize="22dp" />
 
                 <ImageView
@@ -99,17 +97,17 @@
                     android:layout_marginTop="20dp"
                     android:src="@drawable/appintro3" />
 
-                <TextView
+                <Button
                     android:id="@+id/feedbackText"
                     android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="50dp"
                     android:layout_alignTop="@+id/feedbackIcon"
                     android:layout_marginLeft="10dp"
                     android:layout_toEndOf="@+id/feedbackIcon"
                     android:layout_toRightOf="@+id/feedbackIcon"
+                    android:background="@drawable/green_style"
                     android:paddingTop="15dp"
                     android:text="Hedefler"
-                    android:textIsSelectable="true"
                     android:textSize="22dp" />
 
                 <ImageView
@@ -123,17 +121,17 @@
                     android:layout_marginTop="20dp"
                     android:src="@drawable/logout" />
 
-                <TextView
-                    android:id="@+id/settingsText"
+                <Button
+                    android:id="@+id/exit"
                     android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="50dp"
                     android:layout_alignTop="@+id/settingsIcon"
                     android:layout_marginLeft="10dp"
                     android:layout_toEndOf="@+id/settingsIcon"
                     android:layout_toRightOf="@+id/settingsIcon"
+                    android:background="@drawable/red_style"
                     android:paddingTop="15dp"
                     android:text="Çıkış"
-                    android:textIsSelectable="true"
                     android:textSize="22dp" />
 
 

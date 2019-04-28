@@ -15,6 +15,8 @@
     <color name="fats">#F7CA18</color>
     <color name="carbs">#22A7F0</color>
     <color name="protein">#F22613</color>
+    <color name="view_line">#F7F7F9</color>
+    <color name="transparent">#00000000</color>
     <color name="appintro1">#EDD834</color>
     <color name="appintro2">#FF7E55</color>
     <color name="appintro3">#FADAA3</color>
@@ -27,5 +29,6 @@
     <color name="darkWash">#f2f1ef</color>
     <color name="yellowXL">#fcbc21</color>
     <color name="yellowS">#fedc89</color>
+    <color name="media">#EA6D78</color>
     <color name="greyXL">#524e4a</color>
 </resources>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/blue_background">
+
+
+    <TextView
+        android:id="@+id/app_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_centerInParent="true"
+        android:fontFamily="sans-serif-light"
+        android:text="Bilek Partner"
+        android:textColor="@color/white"
+        android:textSize="26dp"
+        android:textStyle="italic" />
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="@dimen/margin_bottom_16"
+        android:orientation="vertical">
+
+
+        <Button
+            android:id="@+id/strt"
+            style="@style/Font_family_regular"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_top_8"
+            android:layout_marginLeft="@dimen/margin_right_16"
+            android:layout_marginRight="@dimen/margin_right_16"
+            android:layout_marginTop="@dimen/margin_top_8"
+            android:background="@drawable/white_style"
+            android:text="Başla"
+            android:textColor="#7640EA"
+            android:textSize="@dimen/text_16" />
+
+    </LinearLayout>
+
+
+</RelativeLayout>

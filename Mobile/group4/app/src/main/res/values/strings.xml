@@ -30,8 +30,13 @@
     <string name="basic1">Name</string>
     <string name="nameDB">Shah Rukh Khan</string>
     <string name="nameHint">Enter name</string>
+    <string name="serv_addr">10.0.0.6</string>
+    <string name="serv_port">3333</string>
+    <string name="edit_message">Enter a message</string>
+    <string name="button_send">Send</string>
     <string name="basic2">Phone Number</string>
     <string name="phoneDB">315-443-1234</string>
+    <string name="empty_list_message">No nearby devices found. Tap on the bottom-right button to start a new device discovery.</string>
     <string name="phoneHint">Enter Phone Number</string>
     <string name="basic3">Gender</string>
     <string name="basic3radio1">Male</string>

@@ -18,6 +18,7 @@ public class InstantStateActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_instant_state);
+
         bottomNavigate();
 
         final CircleProgressBar act = (CircleProgressBar) findViewById(R.id.fats_progress1);
