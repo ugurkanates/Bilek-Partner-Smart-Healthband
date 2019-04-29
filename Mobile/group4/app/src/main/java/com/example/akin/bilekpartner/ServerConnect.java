@@ -8,11 +8,16 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
+import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -39,12 +44,11 @@ public class ServerConnect extends AppCompatActivity {
 
     public static final String MY_PREFS_NAME = "MyPrefsFile";
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.server_connection);
+        bottomNavigate();
         SharedPreferences prefs = getSharedPreferences(MY_PREFS_NAME, MODE_PRIVATE);
         String nserver_address = prefs.getString("server", null);
 
@@ -60,7 +64,7 @@ public class ServerConnect extends AppCompatActivity {
             TextView port_text = (TextView) findViewById(R.id.portText);
             port_text.setText(nserver_port.toString());
         }
-        TextView textView = (TextView) findViewById(R.id.textView2);
+        TextView textView = (TextView) findViewById(R.id.editText);
         textView.setText(resp);
         EditText editText = (EditText) findViewById(R.id.editText);
         Log.d("create",msg);
@@ -164,7 +168,7 @@ public class ServerConnect extends AppCompatActivity {
             Log.d("Set Abort",Abort.toString());
             Log.d("tag","post ex");
             resp = result;
-            TextView textView = (TextView) findViewById(R.id.textView2);
+            TextView textView = (TextView) findViewById(R.id.editText);
             textView.setText(resp);
 
         }
@@ -203,7 +207,7 @@ public class ServerConnect extends AppCompatActivity {
         //Intent intent = new Intent(this, DisplayMessageActivity.class);
         EditText editText = (EditText) findViewById(R.id.editText);
         String message = editText.getText().toString();
-        TextView textView = (TextView) findViewById(R.id.textView2);
+        TextView textView = (TextView) findViewById(R.id.editText);
         textView.setText("Loading...");
         msg = message;
         Log.d("msg",msg);
@@ -224,5 +228,33 @@ public class ServerConnect extends AppCompatActivity {
     public void onBackPressed() {
         Intent intent = new Intent(ServerConnect.this, Settings.class);
         startActivity(intent);
+        finish();
+    }
+    public void bottomNavigate() {
+        BottomNavigationView bottomNavigationView = (BottomNavigationView) findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setOnNavigationItemSelectedListener(
+                new BottomNavigationView.OnNavigationItemSelectedListener() {
+                    @Override
+                    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                        switch (item.getItemId()) {
+                            case R.id.item1:
+                                Intent intent = new Intent(ServerConnect.this, InstantStateActivity.class);
+                                startActivity(intent);
+                                finish();
+                                break;
+                            case R.id.item2:
+                                Intent intent2 = new Intent(ServerConnect.this, MainActivity.class);
+                                startActivity(intent2);
+                                finish();
+                                break;
+                            case R.id.item3:
+                                Intent intent3 = new Intent(ServerConnect.this, Settings.class);
+                                startActivity(intent3);
+                                finish();
+                                break;
+                        }
+                        return true;
+                    }
+                });
     }
 }

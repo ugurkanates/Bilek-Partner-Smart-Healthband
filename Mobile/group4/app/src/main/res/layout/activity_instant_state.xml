@@ -5,14 +5,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/drawer"
-    android:fitsSystemWindows="true"
-    tools:context=".MainActivity">
+    android:fitsSystemWindows="true">
 
     <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/bg2"
+        android:background="@drawable/bg_color"
         android:transitionName="testAnimation"
         tools:context=".InstantStateActivity">
 
@@ -21,7 +20,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
-            app:itemBackground="@color/colorPrimary"
+            app:itemBackground="@color/syracuseblue"
             app:itemIconTint="@color/white"
             app:itemTextColor="@color/white"
             app:menu="@menu/drawer" />

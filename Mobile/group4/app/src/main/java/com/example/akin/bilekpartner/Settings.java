@@ -9,6 +9,8 @@ import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 
 public class Settings extends AppCompatActivity {
@@ -80,5 +82,23 @@ public class Settings extends AppCompatActivity {
                         return true;
                     }
                 });
+    }
+    public void onBackPressed() {
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(Settings.this);
+        alertDialog.setTitle("Uygulamadan Çık?");
+        alertDialog.setMessage("Çıkmak istediğinize emin misiniz?");
+        alertDialog.setPositiveButton("Evet",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        finish();
+                    }
+                });
+        alertDialog.setNegativeButton("Hayır",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+        alertDialog.show();
     }
 }

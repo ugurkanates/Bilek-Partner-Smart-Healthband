@@ -13,8 +13,13 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -58,7 +63,7 @@ public class BluetoothActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.bluetooth_login);
-
+        bottomNavigate();
         textInfo = (TextView)findViewById(R.id.info);
         textStatus = (TextView)findViewById(R.id.status);
         textByteCnt = (TextView)findViewById(R.id.textbyteCnt);
@@ -366,6 +371,34 @@ public class BluetoothActivity extends AppCompatActivity {
     public void onBackPressed() {
         Intent intent = new Intent(BluetoothActivity.this, Settings.class);
         startActivity(intent);
+        finish();
+    }
+    public void bottomNavigate(){
+        BottomNavigationView bottomNavigationView = (BottomNavigationView) findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setOnNavigationItemSelectedListener(
+                new BottomNavigationView.OnNavigationItemSelectedListener() {
+                    @Override
+                    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                        switch (item.getItemId()) {
+                            case R.id.item1:
+                                Intent intent = new Intent(BluetoothActivity.this, InstantStateActivity.class);
+                                startActivity(intent);
+                                finish();
+                                break;
+                            case R.id.item2:
+                                Intent intent2 = new Intent(BluetoothActivity.this, MainActivity.class);
+                                startActivity(intent2);
+                                finish();
+                                break;
+                            case R.id.item3:
+                                Intent intent3 = new Intent(BluetoothActivity.this, Settings.class);
+                                startActivity(intent3);
+                                finish();
+                                break;
+                        }
+                        return true;
+                    }
+                });
     }
 
 }
