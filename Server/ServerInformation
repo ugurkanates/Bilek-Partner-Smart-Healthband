@@ -1,0 +1,12 @@
+- Serverda şu ana kadar yazılanlar sadece Windows üzerinde VisualStudio ile test edildi. LINUX üzerinde kurulup birde oradan test edilmesi gerekiyor. 
+- External IP üzerinden sorunsuz bağlantı yapılabilinmesi için kurulu olduğu bilgisayarın IP'sıne **1379** portunun yönlendirilmesi gerekmektedir. Yapılmazsa sadece localden client kabul ediyor.
+- proje.cpp main file olarak kullandım.
+- Clientlar bağlandıktan sonra, bağlanan clientlardan bir mesaj bekliyor. Gelen mesajın ilk karakterine bakıp eğer 'B' ise Bileklik, 'M' ise MobilApp bağlandı olarak algılıyor. Farklı bir karakter varsa bilinmeyen client diyerek client için açılan socket'i kapatıyor. Başarılı handshake olduğunu belirtmek için geriye 'S' göndermektedir.
+- Başarılı handshake yapıldıktan sonra Bileklik bağlantıyı koparana kadar bileklikten mesaj bekleyip aldığı tüm mesajları "BilekPartner.txt" isimli dosyaya append ederek saklamaktadır. 
+- Mobil ile şu anlık sadece handshake yapılmaktadır.
+
+TODO : 
+- Daha iyi bir workflow belirlenip, handshake ve data strogae işlemleri düzenlenmeli.
+- Mobil ile iletişimin nasıl olacağına karar verilmeli.
+- Makefile yapılmalı. 
+- Kod içerisinde temizlik.
