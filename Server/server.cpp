@@ -9,9 +9,9 @@ Server::Server()
 
 }
 
-Server::~Server()
-{
+Server::~Server(){
 
+	
 }
 
 void Server::StartServer() {
@@ -159,7 +159,7 @@ void Server::ListenClients() {
 
 #endif
 
-	std::cout << "\nServer established, waiting for client" << std::endl;
+	std::cout << "\nServer established on " << GetDate() << " , waiting for clients" << std::endl;
 
 	mamaThread = std::thread(&AcceptClients, serverSocket);
 
@@ -197,9 +197,8 @@ void Server::AcceptClients(int serverSocket){
 			}
 			
 			//GetMessageFromClient(clientSocket);
-			std::thread clientServantThread(VarifyClient, clientSocket);
+			std::thread clientServantThread(VerifyClient, clientSocket);
 			clientThreads.push_back(std::move(clientServantThread));
-			std::cout << "\n ~~ Accepted client, waiting for a new one ~~\n" << std::endl;
 		}
 
 	}
@@ -228,6 +227,43 @@ void Server::AcceptClients(int serverSocket){
 
 }
 
+void Server::VerifyClient(int clientSocket) {
+
+	char buffer[BUFFER_SIZE];
+	int bytesRead;
+	bool clientConnected = true;
+
+	memset(buffer, '\0', BUFFER_SIZE);
+
+	while (serverOn && clientConnected) {
+		bytesRead = recv(clientSocket, buffer, BUFFER_SIZE, DEFAULT);
+		if (bytesRead > ZERO) {
+			if (buffer[0] == 'B') {
+				//Bileklik baðlandý, gerekli fn'leri çaðýrýp verileri kaydetmeye baþla
+				std::cout << "\n ~ BilekPartner connected.\n\n";
+				HandleWristband(clientSocket);
+				clientConnected = false;
+			}
+			else if (buffer[0] == 'M') {
+				// Mobil baðlandý, gerekli fn'leri çaðýrýp iletiþime baþla.
+				std::cout << "\n ~ MobileApp connected\n\n";
+				HandleMobile(clientSocket);
+				clientConnected = false;
+			}else {
+				std::cout << "\nUnknown client connected. Closing socket.\n\n";
+				clientConnected = false;
+			}
+
+		}
+	}
+	std::cout << "\nClientThread finished its job. Returning to Mama Process\n" << std::endl;
+#ifdef _WIN32
+	shutdown(clientSocket, SD_SEND);
+#elif __linux___
+	shutdown(clientSocket, SHUT_RDWR);
+#endif
+}
+
 void Server::HandleWristband(int clientSocket) {
 	char buffer[BUFFER_SIZE];
 	int bytesReadSent = 0;
@@ -235,7 +271,7 @@ void Server::HandleWristband(int clientSocket) {
 	memset(buffer, '\0', BUFFER_SIZE);
 	buffer[0] = 'S';
 	std::fstream wristBandFile;
-
+	WristBandDataPackage dataPackage;
 	//Send confirmation message
 	bytesReadSent = send(clientSocket, buffer, strlen(buffer),DEFAULT);
 	if (bytesReadSent <= 0) {
@@ -244,133 +280,94 @@ void Server::HandleWristband(int clientSocket) {
 	}
 	else { //Confirmation message sent without a problem. Do the job
 
-		wristBandFile.open("BilekPartner.txt", std::fstream::out | std::fstream::app );
+		wristBandFile.open(DATABASE_FILENAME, std::fstream::out | std::fstream::app );
 		
 		//Write given data to files
 		while (serverOn && clientConnected) {
 
-			bytesReadSent = recv(clientSocket, buffer, BUFFER_SIZE, DEFAULT);
+			bytesReadSent = recv(clientSocket, (char*)&dataPackage, sizeof(dataPackage), DEFAULT);
 			if (bytesReadSent <= 0) { //BilekPartner disconnected.
 				clientConnected = false;
-				wristBandFile.close();
 				std::cout << "\n ~ BilekPartner disconnected.\n";
 			}else {
-				std::cout << "\nWristband ->" << buffer << std::endl;
+				
+				sprintf(buffer, "%s,%f,%f,%f,%f,%f\n", GetDate().c_str(),dataPackage.temp, dataPackage.pulse, dataPackage.pX, dataPackage.pY, dataPackage.pZ);
+				std::cout << "Wristband ->" << buffer << std::endl;
 
 				wristBandFile.write(buffer, strlen(buffer));
-				wristBandFile.write("\n", 1);
 				wristBandFile.flush();
 
-				//TODO: Remove this
 				memset(buffer, '\0', BUFFER_SIZE);
-
 			}
-
 		}
+		wristBandFile.close();
 	}
 }
 
 
 void Server::HandleMobile(int clientSocket){
 	char buffer[BUFFER_SIZE];
+	char secondBuff[BUFFER_SIZE];
 	int bytesReadSent = 0;
 	bool clientConnected = true;
 	memset(buffer, '\0', BUFFER_SIZE);
 	buffer[0] = 'S';
 	std::fstream wristbandFile;
 
+	strcpy(secondBuff, "Mobile App Connected!\n\n\0");
+
 	//Send confirmation message
-	bytesReadSent = send(clientSocket, buffer, strlen(buffer), DEFAULT);
+	bytesReadSent = send(clientSocket, secondBuff, strlen(secondBuff), DEFAULT);
 	if (bytesReadSent <= 0) {
 		std::cerr << "\nFailed to sent ConfirmationMessage to MobileApp\n";
 
 	}else { //Confirmation message sent without a problem. Do the job
-
-	}
-}
-
-
-
-/*
-#ifdef _WIN32
-void Server::GetMessageFromClient(SOCKET clientSocket) {
-	
-	char buffer[BUFFER_SIZE];
-	char serverBuff[BUFFER_SIZE];
-	int bytesRead;
-	
-	while (serverOn) {
-
-		ZeroMemory(serverBuff, BUFFER_SIZE);
-		ZeroMemory(buffer, BUFFER_SIZE);
-		//Recieve message from client
-		bytesRead = recv(clientSocket, buffer, BUFFER_SIZE, DEFAULT);
-		if (bytesRead == SOCKET_ERROR) {
-			if (errno != WSAECONNABORTED) {
-				std::cout << std::endl << "Couldn't read from client. Code :" << errno << std::endl;
-				closesocket(clientSocket);
-				exit(EXIT_FAILURE);
-			}
-			else { // Server shutting down, do stuff warn client etc.
-
-			}
-		}
-		else if (bytesRead == ZERO) {
-			std::cout << "\nClient disconnected." << std::endl;
-			serverOn = false;
-		}
-		else {
-
-			std::cout << "\nClient Said -> " << buffer << "(" << strlen(buffer) << ")" << std::endl;
-
-
-			//TODO : Make package for client messages and write them into a file.
-
-		}
-	}
-	std::cout << "ClientServantThread finished its job. Returning to Mama Process\n" << std::endl;
-	shutdown(clientSocket, SD_SEND);
-
-}*/
-
-void Server::VarifyClient(int clientSocket) {
-
-	char buffer[BUFFER_SIZE];
-	char serverBuff[BUFFER_SIZE];
-	int bytesRead;
-	bool clientConnected = true;
-
-	memset(buffer, '\0', BUFFER_SIZE);
-	memset(serverBuff, '\0', BUFFER_SIZE);
-
-	while (serverOn && clientConnected) {
-		bytesRead = recv(clientSocket, buffer, BUFFER_SIZE, DEFAULT);
-		if (bytesRead > ZERO) {
-			std::cout << "\nNew Client -> " << buffer << std::endl;
-			if (buffer[0] == 'B') {
-				//Bileklik baðlandý, gerekli fn'leri çaðýrýp verileri kaydetmeye baþla
-				std::cout << "\n ~ BilekPartner connected.\n";
-				HandleWristband(clientSocket);
-			}
-			else if (buffer[0] == 'M') {
-				// Mobil baðlandý, gerekli fn'leri çaðýrýp iletiþime baþla.
-				std::cout << "\n ~ MobileApp connected\n";
-				HandleMobile(clientSocket);
-			}else {
-				std::cout << "\nUnknown client connected. Closing socket.\n";
+		
+		while (serverOn && clientConnected ) {
+			bytesReadSent = recv(clientSocket, buffer, BUFFER_SIZE, 0);
+			if (bytesReadSent <= 0) {
+				std::cerr << "\nFailed to read command from mobileApp, closing sockeet\n";
 				clientConnected = false;
+			}
+			//List of commands that can be reecieved from mobilApp
+			// "FL" -> "FirstLoad", sends all server dataBase to mobileApp
+			// "UD" -> "UpdateDataBase", takes a date and sends all the packages recieved after the given date to mobileApp
+			// "US" -> "UpdateServer", takes packages from mobileApp to UpdateServer
+			else {
+				if (buffer[0] == 'F' && buffer[1] == 'L') {
+					FirstLoad(clientSocket);
+				}
+
 
 			}
 
-		} 
+			
+		
+		}
 	}
-	std::cout << "ClientServantThread finished its job. Returning to Mama Process\n" << std::endl;
-#ifdef _WIN32
-	shutdown(clientSocket, SD_SEND);
-#elif __linux___
-	shutdown(clientSocket, SHUT_RDWR);
-#endif
 }
+
+void Server::FirstLoad(int clientSocket){
+
+	std::ifstream wristBandFile(DATABASE_FILENAME);
+	std::string inputString;
+	int bytesSend;
+
+	//wristBandFile.open(DATABASE_FILENAME, std::fstream::in);
+	printf("FirstLoad Called, printing Database while sending it\n");
+
+	for (std::string line; getline(wristBandFile, line);) {
+
+		line += "\n";
+		std::cout << line;
+		bytesSend = send(clientSocket, line.c_str(), strlen(line.c_str()),0);
+
+	}
+
+	wristBandFile.close();
+}
+
+
 
 
 std::string Server::GetIPAddress() {
@@ -392,29 +389,28 @@ std::string Server::GetIPAddress() {
 		}
 	}
 
+	std::cout << "\nIP Address -> " << ip << std::endl;
 	return ip;
 }
-/*
-int clientSize = sizeof(clientAddress);
-	if ((clientSocket = accept(serverSocket, (sockaddr*)&clientAddress, &clientSize)) == INVALID_SOCKET) {
-		std::cerr << std::endl << "ERROR -> Failed to accept on server." << std::endl;
-		closesocket(serverSocket);
-		WSACleanup();
-		exit(EXIT_FAILURE);
-	}
+
+std::string Server::GetDate() {
+	std::string date;
+	char dateBuff[DATE_BUFFER_SIZE];
+
+	time_t tt;
+	struct tm *ti;
+
+	time(&tt);
+	ti = localtime(&tt);
+	//date = asctime(ti);
 
 
+				//YEAR										MONTH									DAY									HOUR								MIN									SEC
+	date = std::to_string(1900 + ti->tm_year) + " " + std::to_string(ti->tm_mon + 1) + " " + std::to_string(ti->tm_mday) + " " + std::to_string(ti->tm_hour) + ":" + std::to_string(ti->tm_min) + ":" + std::to_string(ti->tm_sec);
+	
 
+	//Remove newline
+	//date.resize(date.size() - 1);
 
-		// Modify message and send it back to client
-		sprintf_s(serverBuff, "Server says -> %s\0", buffer);
-		bytesRead = send(clientSocket, serverBuff, strlen(serverBuff), DEFAULT);
-		if (bytesRead <= ERROR) {
-			std::cout << std::endl << "Couldn't send message to client" << std::endl;
-			std::cout << std::endl << "ERROR -> " << WSAGetLastError() << std::endl;
-			exit(EXIT_FAILURE);
-		}
-	}
-
-
-*/
+	return date;
+}

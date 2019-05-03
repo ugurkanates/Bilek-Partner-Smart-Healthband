@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <vector>
 #include <fstream>
+#include <ctime>
 #ifdef __linux__
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -35,10 +36,25 @@
 #define WS_VERSION 0x0202
 #define SERVER_PORT 1379  // Serverýn Public olarak çalýþmasý için, modeminizden program çalýþtýrýldýðý zaman yazan IP'ye bu PORT'u Forwardlamanýz gerekmektedir. 
 #define BUFFER_SIZE 4096
+#define DATE_BUFFER_SIZE 30
+#define HANDSHAKE_BUFFER 1
+#define DATABASE_FILENAME "BilekPartner.csv"
+
+struct WristBandDataPackage {
+	float temp;
+	float pulse;
+	float pX;
+	float pY;
+	float pZ;
+};
+
+struct MobileDataPackage {
+	char date[DATE_BUFFER_SIZE];
+	WristBandDataPackage wbData;
+};
 
 class Server
 {
-
 	public:
 		Server();
 		~Server();
@@ -46,15 +62,16 @@ class Server
 		void CloseServer();
 		std::string GetIPAddress();
 		void ListenClients();
+		static std::string GetDate();
 
 	private:
 		// OS dependent GetMessageFromClient functions
-		static void VarifyClient(int clientSocket);
+		static void VerifyClient(int clientSocket);
 		static void AcceptClients(int serverSocket);
 		static void HandleWristband(int clientSocket);
 		static void HandleMobile(int clientSocket);
-		
-		
+		static void FirstLoad(int clientSocket);
+
 		// OS dependent serverSockets
 #ifdef __linux__
 		 int serverSocket;
