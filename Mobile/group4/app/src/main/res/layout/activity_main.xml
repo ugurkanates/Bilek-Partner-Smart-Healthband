@@ -16,9 +16,6 @@
         app:itemIconTint="@color/white"
         app:itemTextColor="@color/white"
         app:menu="@menu/drawer" />
-    android:orientation="vertical"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
 
     <com.natasa.progressviews.CircleProgressBar
         android:id="@+id/fats_progress"

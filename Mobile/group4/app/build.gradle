@@ -21,11 +21,12 @@ dependencies {
     compile project(':progressviewslib')
     compile 'com.android.support:design:27.1.1'
     compile 'com.android.support:support-annotations:27.1.1'
-
+    compile 'com.akexorcist:bluetoothspp:1.0.0'
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation 'com.android.support.constraint:constraint-layout:1.1.3'
 
+    //noinspection GradleCompatible
     implementation 'com.google.android.gms:play-services-auth:16.0.1'
 
     testImplementation 'junit:junit:4.12'

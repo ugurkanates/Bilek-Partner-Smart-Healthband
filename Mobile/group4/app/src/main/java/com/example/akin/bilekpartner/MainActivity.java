@@ -1,6 +1,8 @@
 package com.example.akin.bilekpartner;
 
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -66,5 +68,24 @@ public class MainActivity  extends AppCompatActivity{
                         return true;
                     }
                 });
+    }
+    public void onBackPressed() {
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this);
+        alertDialog.setTitle("Uygulamadan Çık?");
+        alertDialog.setMessage("Çıkmak istediğinize emin misiniz?");
+        alertDialog.setPositiveButton("Evet",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        finish();
+                    }
+                });
+        alertDialog.setNegativeButton("Hayır",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+        alertDialog.show();
+
     }
 }

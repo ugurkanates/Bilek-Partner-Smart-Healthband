@@ -1,260 +1,165 @@
 package com.example.akin.bilekpartner;
 
-/**
- * Created by AKIN Ç on 29.04.2019.
- */
-
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.os.AsyncTask;
-import android.os.Build;
-import android.support.annotation.NonNull;
-import android.support.annotation.RequiresApi;
-import android.support.design.widget.BottomNavigationView;
-import android.support.v7.app.AppCompatActivity;
+import android.graphics.Color;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.MenuItem;
+import android.os.Handler;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.net.InetSocketAddress;
+import java.net.InetAddress;
 import java.net.Socket;
-import java.net.SocketAddress;
-import java.net.SocketException;
+import java.net.UnknownHostException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
-public class ServerConnect extends AppCompatActivity {
-    public static final String EXTRA_MESSAGE = "space.mzero.tcpz.MESSAGE";
-    public static String msg = "default";
-    public static String resp = "No Response Yet\nTry Sending Some Data.";
-    public static String server_address = "10.0.0.6";
-    public static Integer server_port = 3333;
-    public static Boolean Abort = false;
-    public static LongOperation lo = null;
+public class ServerConnect extends AppCompatActivity implements View.OnClickListener {
 
-    public static Socket socket = null;
+    public static final int SERVERPORT = 1379;
 
-    public static final String MY_PREFS_NAME = "MyPrefsFile";
+    public static final String SERVER_IP = "88.228.222.183";
+    private ClientThread clientThread;
+    private Thread thread;
+    private LinearLayout msgList;
+    private Handler handler;
+    private int clientTextColor;
+    private EditText edMessage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.server_connection);
-        bottomNavigate();
-        SharedPreferences prefs = getSharedPreferences(MY_PREFS_NAME, MODE_PRIVATE);
-        String nserver_address = prefs.getString("server", null);
 
-        if (nserver_address!= null){
-            Log.d("load server",nserver_address);
-            TextView server_text = (TextView) findViewById(R.id.serverText);
-            server_text.setText(nserver_address);
-        }
-        Integer nserver_port = prefs.getInt("port", 3333);
-
-        if (nserver_port!= 3333){
-            Log.d("load port",nserver_port.toString());
-            TextView port_text = (TextView) findViewById(R.id.portText);
-            port_text.setText(nserver_port.toString());
-        }
-        TextView textView = (TextView) findViewById(R.id.editText);
-        textView.setText(resp);
-        EditText editText = (EditText) findViewById(R.id.editText);
-        Log.d("create",msg);
-
-        editText.setText(msg);
+        setTitle("Android");
+        clientTextColor = ContextCompat.getColor(this, R.color.green);
+        handler = new Handler();
+        msgList = findViewById(R.id.msgList);
+        edMessage = findViewById(R.id.edMessage);
     }
 
+    public TextView textView(String message, int color) {
+        if (null == message || message.trim().isEmpty()) {
+            message = "<Bos Mesaj>";
+        }
+        TextView tv = new TextView(this);
+        tv.setTextColor(color);
+        tv.setText(message + " [" + getTime() + "]");
+        tv.setTextSize(20);
+        tv.setPadding(0, 5, 0, 0);
+        return tv;
+    }
 
+    public void showMessage(final String message, final int color) {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                msgList.addView(textView(message, color));
+            }
+        });
+    }
 
-    private class LongOperation extends AsyncTask<String, Void, String> {
+    @Override
+    public void onClick(View view) {
 
-        @RequiresApi(api = Build.VERSION_CODES.N)
+        if (view.getId() == R.id.connect_server) {
+            msgList.removeAllViews();
+            clientThread = new ClientThread();
+            thread = new Thread(clientThread);
+            thread.start();
+            showMessage("Servera Bağlanıyor...", clientTextColor);
+            return;
+        }
+
+        if (view.getId() == R.id.send_data) {
+            String clientMessage = edMessage.getText().toString().trim();
+            showMessage(clientMessage, Color.BLUE);
+            if (null != clientThread) {
+                clientThread.sendMessage(clientMessage);
+            }
+        }
+    }
+
+    class ClientThread implements Runnable {
+
+        private Socket socket;
+        private BufferedReader input;
+
         @Override
-        protected String doInBackground(String... params) {
-
-            socket = null;
-            SocketAddress address = new InetSocketAddress(server_address, server_port);
-
-            socket = new Socket();
-
-
+        public void run() {
             try {
-                socket.connect(address, 3000);
-            } catch (IOException e) {
-                Log.d("time","no worky X");
-                e.printStackTrace();
-            }
-            try {
-                socket.setSoTimeout(3000);
-            } catch (SocketException e) {
-                Log.d("timeout","server took too long to respond");
+                InetAddress serverAddr = InetAddress.getByName(SERVER_IP);
+                socket = new Socket(serverAddr, SERVERPORT);
 
-                e.printStackTrace();
-                return "Can't Connect";
-            }
-            OutputStream out = null;
-            try {
-                out = socket.getOutputStream();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            PrintWriter output = new PrintWriter(out);
+                while (!Thread.currentThread().isInterrupted()) {
 
-
-            output.print(msg);
-            output.flush();
-
-//read
-            String str = "waiting";
-            BufferedReader br = null;
-            try {
-                br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            try {
-                Log.d("test","trying to read from server");
-
-                String line;
-                str = "";
-                while ((line = br.readLine()) != null) {
-                    Log.d("read line",line);
-                    str = str + line;
-                    str = str + "\r\n";
+                    this.input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                    String message = input.readLine().toString();
+                    if (null == message || "Kesildi".contentEquals(message)) {
+                        Thread.interrupted();
+                        message = "Server Bağlantısı Kapandı.";
+                        showMessage(message, Color.RED);
+                        break;
+                    }
+                    showMessage("Server: " + message, clientTextColor);
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
+
+            } catch (UnknownHostException e1) {
+                e1.printStackTrace();
+            } catch (IOException e1) {
+                e1.printStackTrace();
             }
-            if (str != null) {
-                Log.d("test","trying to print what was just read");
-                System.out.println(str);
-            }
-
-
-//read
-            output.close();
-
-//read
-            try {
-                br.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-//read
-            try {
-                socket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            Log.d("tag", "done server");
-            return str;
-        }
-
-        @Override
-        protected void onPostExecute(String result) {
-
-            // might want to change "executed" for the returned string passed
-            // into onPostExecute() but that is upto you
-            Abort = false;
-            Log.d("Set Abort",Abort.toString());
-            Log.d("tag","post ex");
-            resp = result;
-            TextView textView = (TextView) findViewById(R.id.editText);
-            textView.setText(resp);
 
         }
 
-        @Override
-        protected void onPreExecute() {
-            TextView server_text = (TextView) findViewById(R.id.serverText);
-            TextView port_text = (TextView) findViewById(R.id.portText);
-            server_address = server_text.getText().toString();
-            server_port = Integer.parseInt(port_text.getText().toString());
-            SharedPreferences.Editor editor = getSharedPreferences(MY_PREFS_NAME, MODE_PRIVATE).edit();
-            editor.putString("server", server_address);
-            editor.putInt("port", server_port);
-            editor.commit();
+        void sendMessage(final String message) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        if (null != socket) {
+                            PrintWriter out = new PrintWriter(new BufferedWriter(
+                                    new OutputStreamWriter(socket.getOutputStream())),
+                                    true);
+                            out.println(message);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
         }
-
-        @Override
-        protected void onProgressUpdate(Void... values) {}
-
-
-        protected void onCancelled(){
-            Log.d("cancel","ca");
-            try {
-                socket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            Abort = false;
-        }
-
 
     }
-    /** Called when the user taps the Send button */
-    public void sendMessage(View view) {
 
-        //Intent intent = new Intent(this, DisplayMessageActivity.class);
-        EditText editText = (EditText) findViewById(R.id.editText);
-        String message = editText.getText().toString();
-        TextView textView = (TextView) findViewById(R.id.editText);
-        textView.setText("Loading...");
-        msg = message;
-        Log.d("msg",msg);
-        // intent.putExtra(EXTRA_MESSAGE, message);
-        Log.d("Check Abort",Abort.toString());
-        if(Abort==true) {
-            lo.cancel(false);
-            Log.d("Aborting",Abort.toString());
-        }
-        else {
-            lo = new LongOperation();
-            lo.execute();
-        }
-        Abort = true;
+    String getTime() {
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+        return sdf.format(new Date());
+    }
 
-        //startActivity(intent);
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (null != clientThread) {
+            clientThread.sendMessage("Kesildi");
+            clientThread = null;
+        }
     }
     public void onBackPressed() {
-        Intent intent = new Intent(ServerConnect.this, Settings.class);
-        startActivity(intent);
+        Intent intent2 = new Intent(ServerConnect.this, Settings.class);
+        startActivity(intent2);
         finish();
-    }
-    public void bottomNavigate() {
-        BottomNavigationView bottomNavigationView = (BottomNavigationView) findViewById(R.id.bottom_navigation);
-        bottomNavigationView.setOnNavigationItemSelectedListener(
-                new BottomNavigationView.OnNavigationItemSelectedListener() {
-                    @Override
-                    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                        switch (item.getItemId()) {
-                            case R.id.item1:
-                                Intent intent = new Intent(ServerConnect.this, InstantStateActivity.class);
-                                startActivity(intent);
-                                finish();
-                                break;
-                            case R.id.item2:
-                                Intent intent2 = new Intent(ServerConnect.this, MainActivity.class);
-                                startActivity(intent2);
-                                finish();
-                                break;
-                            case R.id.item3:
-                                Intent intent3 = new Intent(ServerConnect.this, Settings.class);
-                                startActivity(intent3);
-                                finish();
-                                break;
-                        }
-                        return true;
-                    }
-                });
+
     }
 }

@@ -15,67 +15,32 @@
         app:itemIconTint="@color/white"
         app:itemTextColor="@color/white"
         app:menu="@menu/drawer" />
-    android:orientation="vertical"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
 
-    <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/textbyteCnt"
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            android:layout_weight="1"/>
-        <TextView
-            android:id="@+id/status"
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            android:layout_weight="1"/>
-    </LinearLayout>
+    <Button
+        android:id="@+id/connect"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/on"
+        android:layout_alignParentStart="true"
+        android:layout_marginBottom="35dp"
+        android:text="Connect" />
 
-    <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:orientation="vertical">
+    <Button
+        android:id="@+id/on"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/off"
+        android:layout_alignParentStart="true"
+        android:layout_marginBottom="30dp"
+        android:text="LED ON" />
 
-        <TextView
-            android:id="@+id/info"
-            android:textStyle="bold|italic"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-        <ListView
-            android:id="@+id/pairedlist"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
-
-        <LinearLayout
-            android:id="@+id/inputpane"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:visibility="gone">
-
-            <EditText
-                android:id="@+id/input"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
-            <Button
-                android:id="@+id/send"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Sent"/>
-            <Button
-                android:id="@+id/clear"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Clear"/>
-
-        </LinearLayout>
-
-    </LinearLayout>
+    <Button
+        android:id="@+id/off"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/bottom_navigation"
+        android:layout_alignParentStart="true"
+        android:layout_marginBottom="49dp"
+        android:text="LED OFF" />
 </RelativeLayout>
