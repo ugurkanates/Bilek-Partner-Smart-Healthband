@@ -12,6 +12,8 @@ mobileTest::~mobileTest()
 }
 
 void mobileTest::ConnectToServer(){
+
+#ifdef _WIN32
 	WSADATA wsaData;
 	serverSocket = INVALID_SOCKET;
 	struct addrinfo *result = NULL,
@@ -99,28 +101,61 @@ void mobileTest::ConnectToServer(){
 		exit(EXIT_FAILURE);
 	}
 
+#elif __linux__
+	struct hostent *server;
+	struct sockaddr_in serverAddress;
+
+	// Creating server socket for connection
+	serverSocket = socket(AF_INET, SOCK_STREAM, DEFAULT_OPTIONS);
+	if (serverSocket == ERROR_CODE) {
+		std::cerr << "\nSystem Error\nServer socket creation failed\n";
+		exit(EXIT_FAILURE);
+	}
+
+	// Filling server address structure
+	server = gethostbyname(ip.c_str());
+	bcopy((char *)server->h_addr, (char*)&serverAddress.sin_addr.s_addr, sizeof(serverAddress));
+	serverAddress.sin_family = AF_INET;
+	serverAddress.sin_port = htons(atoi(port.c_str()));
+
+	// Connecting to server
+	if (connect(serverSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) == ERROR_CODE) {
+		std::cerr << "\nSystem Error\nConnection to server socket failed" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+
+#endif
+
 }
 
 void mobileTest::HandshakeWithServer(){
 	int bytesReadSent = 0;
 	char buffer[BUFFER_SIZE];
-	
 	//Send Confirmation Char
 	bytesReadSent = send(serverSocket, "M", 1, 0);
-	if (bytesReadSent == SOCKET_ERROR) {
+	if (bytesReadSent == ERROR_CODE) {
 		printf("send failed with error: %d\n", WSAGetLastError());
+#ifdef _WIN32
 		closesocket(serverSocket);
 		WSACleanup();
+#elif __linux__
+		close(serverSocket);
+#endif
+		exit(EXIT_FAILURE);
+	}
+	bytesReadSent = recv(serverSocket, buffer, 1, 0);
+	if (bytesReadSent == ERROR_CODE || buffer[0] != 'S') {
+		printf("recv failed with error\n");
+#ifdef _WIN32
+		closesocket(serverSocket);
+		WSACleanup();
+#elif __linux__
+		close(serverSocket);
+#endif
 		exit(EXIT_FAILURE);
 	}
 
-	bytesReadSent = recv(serverSocket, buffer, 1, 0);
-	if (bytesReadSent == SOCKET_ERROR || buffer[0] != 'S') {
-		printf("recv failed with error\n");
-		closesocket(serverSocket);
-		WSACleanup();
-		exit(EXIT_FAILURE);
-	}
+
 }
 
 void mobileTest::FirstLoad(){
@@ -322,6 +357,3 @@ std::string mobileTest::GetDate() {
 
 	return date;
 }
-
-
-//2019 05 04 18:48:27

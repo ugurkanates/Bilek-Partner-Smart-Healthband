@@ -27,10 +27,11 @@
 
 
 #define ZERO 0
+#define ERROR 0
 #define ERROR_CODE -1
 #define DEFAULT 0
 #define WS_VERSION 0x0202
-#define SERVER_IP "88.228.222.183"
+#define SERVER_IP "127.0.0.1"
 #define SERVER_PORT "1379"  // Serverýn Public olarak çalýþmasý için, modeminizden program çalýþtýrýldýðý zaman yazan IP'ye bu PORT'u Forwardlamanýz gerekmektedir. 
 #define BUFFER_SIZE 256
 #define DATE_BUFFER_SIZE 30
