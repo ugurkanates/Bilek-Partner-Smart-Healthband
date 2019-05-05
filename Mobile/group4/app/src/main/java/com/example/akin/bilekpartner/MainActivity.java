@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -12,11 +13,16 @@ import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.TextView;
 
 import com.natasa.progressviews.CircleProgressBar;
+
+import org.w3c.dom.Text;
 
 /**
  * Created by AKIN Ç on 15.04.2019.
@@ -26,7 +32,7 @@ import com.natasa.progressviews.CircleProgressBar;
 public class MainActivity  extends AppCompatActivity{
 
     DataBaseHelper myDB;
-
+    Button button;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,11 +48,29 @@ public class MainActivity  extends AppCompatActivity{
         mdp.wbData.pY = Float.parseFloat("130");
         mdp.wbData.pZ = Float.parseFloat("140");
         myDB.insert_serverdata(mdp);
+        final TextView textView=findViewById(R.id.pulses);
+        Button bt=findViewById(R.id.ekle);
+        bt.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (textView.getText() != null &&Integer.parseInt(String.valueOf(textView.getText()))>100 ||Integer.parseInt(String.valueOf(textView.getText()))<60) {
+                    Intent smsIntent = new Intent(Intent.ACTION_VIEW);
+                    smsIntent.setType("vnd.android-dir/mms-sms");
+                    smsIntent.putExtra("address", "05349881140");
+                    smsIntent.putExtra("sms_body", "Nabız değerim: " + textView.getText() + " Yardıma ihtiyacım var");
+                    startActivity(smsIntent);
+                }
+                else if(textView.getText() != null){
+                    final CircleProgressBar pulse = (CircleProgressBar) findViewById(R.id.fats_progress);
+                    pulse.setProgress(Integer.parseInt(String.valueOf(textView.getText()))%360);
+                    pulse.setText(Integer.parseInt(String.valueOf(textView.getText())) + " bmp");
+                }
+            }
+        });
 
         final CircleProgressBar pulse = (CircleProgressBar) findViewById(R.id.fats_progress);
         final CircleProgressBar temperature = (CircleProgressBar) findViewById(R.id.carbs_progress);
         final CircleProgressBar movement = (CircleProgressBar) findViewById(R.id.protein_progress);
-
 
         /*burda surekli bu islemi yapmasini istedim
         islem dedigim databaseden bilgileri alip processbarlari guncellemesi
@@ -79,7 +103,6 @@ public class MainActivity  extends AppCompatActivity{
 
 
     }
-
 
     /*guncelleme kendi sayfasini acmasini saglladim sayfa refreshlensin diye*/
     public void bottomNavigate(){
