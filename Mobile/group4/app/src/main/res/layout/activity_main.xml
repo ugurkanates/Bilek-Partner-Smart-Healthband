@@ -61,7 +61,8 @@
         android:layout_marginStart="23dp"
         android:text="Sıcaklık"
         android:textSize="20dp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:id="@+id/textView3" />
 
     <TextView
         android:id="@+id/textView"
@@ -73,4 +74,26 @@
         android:text="Toplam Hareket"
         android:textSize="20dp"
         android:textStyle="bold" />
+
+    <Button
+        android:id="@+id/ekle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/bottom_navigation"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="27dp"
+        android:text="Ekle"
+        android:background="@color/green"/>
+
+    <EditText
+        android:id="@+id/pulses"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/ekle"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="13dp"
+        android:ems="10"
+        android:background="@drawable/yellow_style"
+        android:hint="nabız girin"
+        android:inputType="number" />
 </RelativeLayout>
