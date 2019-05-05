@@ -10,6 +10,8 @@
 int main(int argc, char** argv){
 	Server test = Server();
 	int end;
+	
+
 
 	test.GetIPAddress();
 	test.StartServer();
@@ -18,7 +20,7 @@ int main(int argc, char** argv){
 	std::cin >> end;
 
 	test.CloseServer();
-
+	
 	return 0;
 }
 

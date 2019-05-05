@@ -35,8 +35,8 @@
 #define DEFAULT 0
 #define WS_VERSION 0x0202
 #define SERVER_PORT 1379  // Serverýn Public olarak çalýþmasý için, modeminizden program çalýþtýrýldýðý zaman yazan IP'ye bu PORT'u Forwardlamanýz gerekmektedir. 
-#define BUFFER_SIZE 4096
-#define DATE_BUFFER_SIZE 30
+#define BUFFER_SIZE 256
+#define DATE_BUFFER_SIZE 25
 #define HANDSHAKE_BUFFER 1
 #define DATABASE_FILENAME "BilekPartner.csv"
 
@@ -71,6 +71,8 @@ class Server
 		static void HandleWristband(int clientSocket);
 		static void HandleMobile(int clientSocket);
 		static void FirstLoad(int clientSocket);
+		static void UpdateServer(int clientSocket);
+		static void UpdateDataBase(int clientSocket, std::string updateDate);
 
 		// OS dependent serverSockets
 #ifdef __linux__

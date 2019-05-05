@@ -254,9 +254,12 @@ void Server::VerifyClient(int clientSocket) {
 				clientConnected = false;
 			}
 
+		} else {
+			std::cout << "\nUnknown client connected. Closing socket.\n\n";
+			clientConnected = false;
 		}
 	}
-	std::cout << "\nClientThread finished its job. Returning to Mama Process\n" << std::endl;
+	std::cerr << "\nClientThread finished its job. Returning to Mama Process\n" << std::endl;
 #ifdef _WIN32
 	shutdown(clientSocket, SD_SEND);
 #elif __linux___
@@ -265,39 +268,38 @@ void Server::VerifyClient(int clientSocket) {
 }
 
 void Server::HandleWristband(int clientSocket) {
-	char buffer[BUFFER_SIZE];
+	char wristBandBuffer[BUFFER_SIZE+1];
 	int bytesReadSent = 0;
 	bool clientConnected = true;
-	memset(buffer, '\0', BUFFER_SIZE);
-	buffer[0] = 'S';
+	memset(wristBandBuffer, '\0', BUFFER_SIZE+1);
 	std::fstream wristBandFile;
 	WristBandDataPackage dataPackage;
-	//Send confirmation message
-	bytesReadSent = send(clientSocket, buffer, strlen(buffer),DEFAULT);
-	if (bytesReadSent <= 0) {
-		std::cerr << "\nFailed to sent ConfirmationMessage to Wristband\n";
 
-	}
-	else { //Confirmation message sent without a problem. Do the job
+	//Send confirmation message
+	wristBandBuffer[0] = 'S';
+	bytesReadSent = send(clientSocket, wristBandBuffer, strlen(wristBandBuffer),DEFAULT);
+	if (bytesReadSent <= ZERO) {
+		std::cerr << "\nFailed to sent ConfirmationMessage to Wristband\n";
+	}else { //Confirmation message sent without a problem. Do the job
 
 		wristBandFile.open(DATABASE_FILENAME, std::fstream::out | std::fstream::app );
 		
 		//Write given data to files
 		while (serverOn && clientConnected) {
-
+			
 			bytesReadSent = recv(clientSocket, (char*)&dataPackage, sizeof(dataPackage), DEFAULT);
 			if (bytesReadSent <= 0) { //BilekPartner disconnected.
 				clientConnected = false;
 				std::cout << "\n ~ BilekPartner disconnected.\n";
 			}else {
 				
-				sprintf(buffer, "%s,%f,%f,%f,%f,%f\n", GetDate().c_str(),dataPackage.temp, dataPackage.pulse, dataPackage.pX, dataPackage.pY, dataPackage.pZ);
-				std::cout << "Wristband ->" << buffer << std::endl;
+				sprintf(wristBandBuffer, "%s,%f,%f,%f,%f,%f\n", GetDate().c_str(),dataPackage.temp, dataPackage.pulse, dataPackage.pX, dataPackage.pY, dataPackage.pZ);
+				std::cout << "Wristband ->" << wristBandBuffer;
 
-				wristBandFile.write(buffer, strlen(buffer));
+				wristBandFile.write(wristBandBuffer, strlen(wristBandBuffer));
 				wristBandFile.flush();
 
-				memset(buffer, '\0', BUFFER_SIZE);
+				memset(wristBandBuffer, '\0', BUFFER_SIZE);
 			}
 		}
 		wristBandFile.close();
@@ -314,11 +316,11 @@ void Server::HandleMobile(int clientSocket){
 	buffer[0] = 'S';
 	std::fstream wristbandFile;
 
-	strcpy(secondBuff, "Mobile App Connected!\n\n\0");
+	strcpy(secondBuff, "S\0");
 
 	//Send confirmation message
 	bytesReadSent = send(clientSocket, secondBuff, strlen(secondBuff), DEFAULT);
-	if (bytesReadSent <= 0) {
+	if (bytesReadSent <= ZERO) {
 		std::cerr << "\nFailed to sent ConfirmationMessage to MobileApp\n";
 
 	}else { //Confirmation message sent without a problem. Do the job
@@ -336,13 +338,14 @@ void Server::HandleMobile(int clientSocket){
 			else {
 				if (buffer[0] == 'F' && buffer[1] == 'L') {
 					FirstLoad(clientSocket);
+				}else if (buffer[0] == 'U' && buffer[1] == 'S') {
+					UpdateServer(clientSocket);
+				}else if (buffer[0] == 'U' && buffer[1] == 'D') {
+					UpdateDataBase(clientSocket, buffer);
+				}else {
+					std::cerr << "Unknown command from MobileApp -> " << buffer << std::endl;
 				}
-
-
 			}
-
-			
-		
 		}
 	}
 }
@@ -350,7 +353,6 @@ void Server::HandleMobile(int clientSocket){
 void Server::FirstLoad(int clientSocket){
 
 	std::ifstream wristBandFile(DATABASE_FILENAME);
-	std::string inputString;
 	int bytesSend;
 
 	//wristBandFile.open(DATABASE_FILENAME, std::fstream::in);
@@ -359,12 +361,94 @@ void Server::FirstLoad(int clientSocket){
 	for (std::string line; getline(wristBandFile, line);) {
 
 		line += "\n";
-		std::cout << line;
-		bytesSend = send(clientSocket, line.c_str(), strlen(line.c_str()),0);
-
+		std::cout << line.c_str();
+		bytesSend = send(clientSocket, line.c_str(), BUFFER_SIZE, DEFAULT);
+		if (bytesSend <= 0) {
+			std::cerr << "Failed to sent data to Mobile on FirstLoad Function \n";
+		}
 	}
 
+	send(clientSocket, "FL FIN", BUFFER_SIZE, DEFAULT);
+
 	wristBandFile.close();
+
+	printf("First Load finished\n");
+}
+
+void Server::UpdateServer(int clientSocket){
+
+	int bytesReadSent;
+	bool finished = false;
+	char buffer[BUFFER_SIZE];
+	char* buff2;
+	MobileDataPackage mobDataPack;
+	std::fstream wristBandFile;
+	int  count = 0;
+	std::string fin("US FIN");
+	wristBandFile.open(DATABASE_FILENAME, std::fstream::out | std::fstream::app);
+
+
+	printf("UpdateServer Called, printing all the information recieved \n");
+
+	while (!finished) {
+		bytesReadSent = recv(clientSocket, buffer, BUFFER_SIZE, DEFAULT);
+		if (bytesReadSent <= ERROR) {
+			std::cerr << "\nCouldn't read from MobileApp in UpdateDataBase.\n ";
+			finished = true;
+		}else {
+			if (fin.compare(buffer) == 0) {
+				finished = true;
+			}else {
+
+			// Write MobDataPack into server.
+			std::cout << "UpdateServer ->" << buffer ;
+
+			wristBandFile.write(buffer, strlen(buffer));
+			wristBandFile.flush();
+			}
+		}
+	}
+	wristBandFile.close();
+
+	printf("Exiting UpdateServer\n");
+}
+
+void Server::UpdateDataBase(int clientSocket, std::string updateDate){
+	std::ifstream wristBandFile(DATABASE_FILENAME);
+	int bytesSend;
+	int year = 0, month = 0, day = 0, hour = 0, min = 0, sec = 0;
+	int s_year = 0, s_month = 0, s_day = 0, s_hour = 0, s_min = 0, s_sec = 0;
+	char date1[BUFFER_SIZE], date2[BUFFER_SIZE];
+	int res;
+	bool found = false;
+
+	sscanf(updateDate.c_str(), "UD %d %d %d %d:%d:%d", &year,&month,&day,&hour,&min,&sec);
+	sprintf(date1, "%d%d%d%d%d%d", year, month, day, hour, min, sec);
+
+
+	printf("UpdateDatabase Called, requested date %s\n", updateDate.c_str());
+
+
+	for (std::string line; getline(wristBandFile, line);) {
+
+		if (found) {
+			//SEND INFORMATION TO MOBILE
+			line += "\n";
+			bytesSend = send(clientSocket, line.c_str(),BUFFER_SIZE, DEFAULT);
+			printf("UpdateDatabase -> %s", line.c_str());
+		}else {
+			sscanf(line.c_str(), "%d %d %d %d:%d:%d", &s_year, &s_month, &s_day, &s_hour, &s_min, &s_sec);
+			sprintf(date2,"%d%d%d%d%d%d", s_year, s_month, s_day, s_hour, s_min, s_sec);
+			res = strcmp(date1, date2);
+			if (res == -1) found = true;
+		}
+	}
+
+	send(clientSocket, "UD FIN", BUFFER_SIZE, DEFAULT);
+
+	wristBandFile.close();
+
+	printf("Exiting UpdateDataBase\n");
 }
 
 
@@ -402,15 +486,115 @@ std::string Server::GetDate() {
 
 	time(&tt);
 	ti = localtime(&tt);
-	//date = asctime(ti);
 
-
-				//YEAR										MONTH									DAY									HOUR								MIN									SEC
-	date = std::to_string(1900 + ti->tm_year) + " " + std::to_string(ti->tm_mon + 1) + " " + std::to_string(ti->tm_mday) + " " + std::to_string(ti->tm_hour) + ":" + std::to_string(ti->tm_min) + ":" + std::to_string(ti->tm_sec);
-	
-
-	//Remove newline
-	//date.resize(date.size() - 1);
+	//YEAR
+	date = std::to_string(1900 + ti->tm_year) + " ";
+	//Month
+	if (ti->tm_mon + 1 < 10) {
+		date +=  "0" + std::to_string(ti->tm_mon + 1) + " ";
+	}else {
+		date += std::to_string(ti->tm_mon + 1) + " ";
+	}
+	//Day
+	if (ti->tm_mday < 10) {
+		date += "0" + std::to_string(ti->tm_mday) + " ";
+	}else {
+		date += std::to_string(ti->tm_mday) + " ";
+	}
+	//Hour
+	if (ti->tm_hour < 10) {
+		date += "0" + std::to_string(ti->tm_hour) + ":";
+	}else {
+		date += std::to_string(ti->tm_hour) + ":";
+	}
+	//Minute
+	if (ti->tm_min < 10) {
+		date += "0" + std::to_string(ti->tm_min) + ":";
+	}else {
+		date += std::to_string(ti->tm_min) + ":";
+	}
+	//Second
+	if (ti->tm_sec <10) {
+		date += "0" + std::to_string(ti->tm_sec);
+	}else {
+		date += std::to_string(ti->tm_sec);
+	}
 
 	return date;
 }
+
+
+/*
+
+int bytesReadSent;
+	bool finished = false;
+	char buffer[BUFFER_SIZE];
+	char* buff2;
+	MobileDataPackage mobDataPack;
+	std::fstream wristBandFile;
+	int  count = 0;
+	std::string fin("US FIN");
+	wristBandFile.open(DATABASE_FILENAME, std::fstream::out | std::fstream::app);
+
+
+	printf("UpdateServer Called, printing all the information recieved \n");
+
+	while (!finished) {
+		bytesReadSent = recv(clientSocket, buffer, BUFFER_SIZE, DEFAULT);
+		if (bytesReadSent <= ERROR) {
+			std::cerr << "\nCouldn't read from MobileApp in UpdateDataBase.\n ";
+			finished = true;
+		}else {
+			if (fin.compare(buffer) == 0) finished = true;
+			if (!finished) {
+				//Parse recieved string
+				buff2 = strtok(buffer, ",");
+				while (buff2 !=  NULL) {
+					printf("buff2 -> %s\n",buff2);
+					switch (count) {
+					case 0:	//Date information
+						strcpy(mobDataPack.date, buff2);
+						++count;
+						break;
+					case 1:	// Temperature information
+						mobDataPack.wbData.temp = std::stof(buff2);
+						++count;
+						break;
+					case 2:	// Pulse Information
+						mobDataPack.wbData.pulse = std::stof(buff2);
+						++count;
+						break;
+					case 3:	// Acceleration X
+						mobDataPack.wbData.pX = std::stof(buff2);
+						++count;
+						break;
+					case 4:		//Acceleration Y
+						mobDataPack.wbData.pY = std::stof(buff2);
+						++count;
+						break;
+					case 5:		//Acceleration Z
+						mobDataPack.wbData.pX = std::stof(buff2);
+						++count;
+						break;
+					default:
+						break;
+					}
+					buff2 = strtok(NULL, ",");
+				}
+				printf("Cycle finished\n");
+			}
+
+			count = 0;
+
+			// Write MobDataPack into server.
+			sprintf(buffer, "%s,%f,%f,%f,%f,%f\n\0", mobDataPack.date, mobDataPack.wbData.temp, mobDataPack.wbData.pulse, mobDataPack.wbData.pX, mobDataPack.wbData.pY, mobDataPack.wbData.pZ);
+			std::cout << "UpdateDataBase ->" << buffer << std::endl;
+
+			wristBandFile.write(buffer, strlen(buffer));
+			wristBandFile.flush();
+		}
+	}
+	wristBandFile.close();
+
+	printf("Exiting UpdateServer\n");
+*/
