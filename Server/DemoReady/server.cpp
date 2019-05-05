@@ -315,7 +315,7 @@ void Server::HandleMobile(int clientSocket){
 		while (serverOn && clientConnected ) {
 			bytesReadSent = recv(clientSocket, buffer, BUFFER_SIZE, 0);
 			if (bytesReadSent <= 0) {
-				std::cerr << "\nFailed to read command from mobileApp, closing sockeet\n";
+				std::cerr << "\n ~ MobileApp disconnected.\n";
 				clientConnected = false;
 			}
 			//List of commands that can be reecieved from mobilApp
@@ -343,7 +343,7 @@ void Server::FirstLoad(int clientSocket){
 	int bytesSend;
 
 	//wristBandFile.open(DATABASE_FILENAME, std::fstream::in);
-	printf("FirstLoad Called, printing Database while sending it\n");
+	printf("FirstLoad Called, printing Database while sending it\n\n");
 
 	for (std::string line; getline(wristBandFile, line);) {
 
@@ -375,7 +375,7 @@ void Server::UpdateServer(int clientSocket){
 	wristBandFile.open(DATABASE_FILENAME, std::fstream::out | std::fstream::app);
 
 
-	printf("UpdateServer Called, printing all the information recieved \n");
+	printf("UpdateServer Called, printing all the information recieved\n\n");
 
 	while (!finished) {
 		bytesReadSent = recv(clientSocket, buffer, BUFFER_SIZE, DEFAULT);
@@ -415,7 +415,7 @@ void Server::UpdateDataBase(int clientSocket, std::string updateDate){
 	sprintf(date1, "%s%s%s%s%s%s", year, month, day, hour, min, sec);
 
 
-	printf("UpdateDatabase Called, requested date %s %s %s %s:%s:%s\n", year,month,day,hour,min,sec );
+	printf("UpdateDatabase Called, requested date %s %s %s %s:%s:%s\n\n", year,month,day,hour,min,sec );
 
 
 	for (std::string line; getline(wristBandFile, line);) {

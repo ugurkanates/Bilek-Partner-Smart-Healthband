@@ -36,7 +36,7 @@
 #define WS_VERSION 0x0202
 #ifdef _WIN32
 #define SERVER_IP "127.0.0.1"
-#elif 
+#elif __linux__
 #define SERVER_IP "0.0.0.0"
 #endif
 #define SERVER_PORT "1379"  // Serverýn Public olarak çalýþmasý için, modeminizden program çalýþtýrýldýðý zaman yazan IP'ye bu PORT'u Forwardlamanýz gerekmektedir. 

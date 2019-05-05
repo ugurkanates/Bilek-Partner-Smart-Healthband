@@ -132,9 +132,8 @@ void mobileTest::HandshakeWithServer(){
 	char buffer[BUFFER_SIZE];
 	//Send Confirmation Char
 	buffer[0] ='M';
-	memset(buffer,'M',BUFFER_SIZE);
+	//memset(buffer,'M',BUFFER_SIZE);
 	bytesReadSent = send(serverSocket, buffer, BUFFER_SIZE, 0);
-printf("ADASDADASD");
 	if (bytesReadSent == ERROR_CODE) {
 #ifdef _WIN32
 		printf("send failed with error: %d\n", WSAGetLastError());

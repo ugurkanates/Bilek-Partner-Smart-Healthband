@@ -143,7 +143,7 @@ void BilekPartner::SendDataToServer() {
 
 	WristBandDataPackage wristPackage = { t,p,px,py,pz };
 	buffer[0] ='B';
-	memset(buffer,'B',BUFFER_SIZE);
+	//memset(buffer,'B',BUFFER_SIZE);
 	//Send Confirmation Char
 	bytesReadSent = send(serverSocket, buffer, BUFFER_SIZE, 0);
 
