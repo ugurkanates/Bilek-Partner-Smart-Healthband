@@ -416,17 +416,19 @@ void Server::UpdateServer(int clientSocket){
 void Server::UpdateDataBase(int clientSocket, std::string updateDate){
 	std::ifstream wristBandFile(DATABASE_FILENAME);
 	int bytesSend;
-	int year = 0, month = 0, day = 0, hour = 0, min = 0, sec = 0;
-	int s_year = 0, s_month = 0, s_day = 0, s_hour = 0, s_min = 0, s_sec = 0;
+	char s_year[5], s_month[3], s_day[3],s_hour[3], s_min[3], s_sec[3];
+	char year[5], month[3], day[3], hour[3], min[3], sec[3];
 	char date1[BUFFER_SIZE], date2[BUFFER_SIZE];
 	int res;
 	bool found = false;
 
-	sscanf(updateDate.c_str(), "UD %d %d %d %d:%d:%d", &year,&month,&day,&hour,&min,&sec);
-	sprintf(date1, "%d%d%d%d%d%d", year, month, day, hour, min, sec);
 
 
-	printf("UpdateDatabase Called, requested date %s\n", updateDate.c_str());
+	sscanf(updateDate.c_str(), "UD %s %s %s %2s:%2s:%2s", year,month,day,hour,min,sec);
+	sprintf(date1, "%s%s%s%s%s%s", year, month, day, hour, min, sec);
+
+
+	printf("UpdateDatabase Called, requested date %s %s %s %s:%s:%s\n", year,month,day,hour,min,sec );
 
 
 	for (std::string line; getline(wristBandFile, line);) {
@@ -437,8 +439,8 @@ void Server::UpdateDataBase(int clientSocket, std::string updateDate){
 			bytesSend = send(clientSocket, line.c_str(),BUFFER_SIZE, DEFAULT);
 			printf("UpdateDatabase -> %s", line.c_str());
 		}else {
-			sscanf(line.c_str(), "%d %d %d %d:%d:%d", &s_year, &s_month, &s_day, &s_hour, &s_min, &s_sec);
-			sprintf(date2,"%d%d%d%d%d%d", s_year, s_month, s_day, s_hour, s_min, s_sec);
+			sscanf(line.c_str(), "%s %s %s %2s:%2s:%2s", s_year, s_month, s_day, s_hour, s_min, s_sec);
+			sprintf(date2,"%s%s%s%s%s%s", s_year, s_month, s_day, s_hour, s_min, s_sec);
 			res = strcmp(date1, date2);
 			if (res == -1) found = true;
 		}
@@ -522,79 +524,3 @@ std::string Server::GetDate() {
 
 	return date;
 }
-
-
-/*
-
-int bytesReadSent;
-	bool finished = false;
-	char buffer[BUFFER_SIZE];
-	char* buff2;
-	MobileDataPackage mobDataPack;
-	std::fstream wristBandFile;
-	int  count = 0;
-	std::string fin("US FIN");
-	wristBandFile.open(DATABASE_FILENAME, std::fstream::out | std::fstream::app);
-
-
-	printf("UpdateServer Called, printing all the information recieved \n");
-
-	while (!finished) {
-		bytesReadSent = recv(clientSocket, buffer, BUFFER_SIZE, DEFAULT);
-		if (bytesReadSent <= ERROR) {
-			std::cerr << "\nCouldn't read from MobileApp in UpdateDataBase.\n ";
-			finished = true;
-		}else {
-			if (fin.compare(buffer) == 0) finished = true;
-			if (!finished) {
-				//Parse recieved string
-				buff2 = strtok(buffer, ",");
-				while (buff2 !=  NULL) {
-					printf("buff2 -> %s\n",buff2);
-					switch (count) {
-					case 0:	//Date information
-						strcpy(mobDataPack.date, buff2);
-						++count;
-						break;
-					case 1:	// Temperature information
-						mobDataPack.wbData.temp = std::stof(buff2);
-						++count;
-						break;
-					case 2:	// Pulse Information
-						mobDataPack.wbData.pulse = std::stof(buff2);
-						++count;
-						break;
-					case 3:	// Acceleration X
-						mobDataPack.wbData.pX = std::stof(buff2);
-						++count;
-						break;
-					case 4:		//Acceleration Y
-						mobDataPack.wbData.pY = std::stof(buff2);
-						++count;
-						break;
-					case 5:		//Acceleration Z
-						mobDataPack.wbData.pX = std::stof(buff2);
-						++count;
-						break;
-					default:
-						break;
-					}
-					buff2 = strtok(NULL, ",");
-				}
-				printf("Cycle finished\n");
-			}
-
-			count = 0;
-
-			// Write MobDataPack into server.
-			sprintf(buffer, "%s,%f,%f,%f,%f,%f\n\0", mobDataPack.date, mobDataPack.wbData.temp, mobDataPack.wbData.pulse, mobDataPack.wbData.pX, mobDataPack.wbData.pY, mobDataPack.wbData.pZ);
-			std::cout << "UpdateDataBase ->" << buffer << std::endl;
-
-			wristBandFile.write(buffer, strlen(buffer));
-			wristBandFile.flush();
-		}
-	}
-	wristBandFile.close();
-
-	printf("Exiting UpdateServer\n");
-*/
