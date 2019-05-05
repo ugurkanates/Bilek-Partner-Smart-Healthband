@@ -70,6 +70,7 @@ public class Settings extends AppCompatActivity {
                             case R.id.item1:
                                 Intent intent = new Intent(Settings.this, InstantStateActivity.class);
                                 startActivity(intent);
+                                finish();
                                 break;
                             case R.id.item2:
                                 Intent intent2 = new Intent(Settings.this, MainActivity.class);

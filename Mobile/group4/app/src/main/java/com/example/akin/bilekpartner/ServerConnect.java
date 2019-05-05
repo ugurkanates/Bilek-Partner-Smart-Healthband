@@ -36,12 +36,13 @@ public class ServerConnect extends AppCompatActivity implements View.OnClickList
     private Handler handler;
     private int clientTextColor;
     private EditText edMessage;
+    DataBaseHelper myDB;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.server_connection);
-
+        myDB=new DataBaseHelper(this);
         setTitle("Android");
         clientTextColor = ContextCompat.getColor(this, R.color.green);
         handler = new Handler();
@@ -89,15 +90,26 @@ public class ServerConnect extends AppCompatActivity implements View.OnClickList
                 clientThread.sendMessage(clientMessage);
             }
         }
+        if(view.getId() == R.id.disconnect_server){
+            Thread.interrupted();
+            String message = "Server Bağlantısı Kapandı.";
+            showMessage(message, Color.RED);
+        }
     }
-
+    /*! servera baglanildi mesajini sanirim kazara sildim baglanmis oldugunu goremeyebilirsniz*/
     class ClientThread implements Runnable {
 
         private Socket socket;
         private BufferedReader input;
+        public int success=0; // basarili gelen veri sayisi
+    /*not her veri isteginde random olarak 3 -4 veya2 veri gelmekte sebebi arastirilmali bacada androidte bir buffer mi var ?
+    * Turn back buttonu olmali
+    * Bazen ani olarak uygulamada cokmeler yasaniyor sebebi blunmali */
 
         @Override
         public void run() {
+
+
             try {
                 InetAddress serverAddr = InetAddress.getByName(SERVER_IP);
                 socket = new Socket(serverAddr, SERVERPORT);
@@ -106,13 +118,33 @@ public class ServerConnect extends AppCompatActivity implements View.OnClickList
 
                     this.input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                     String message = input.readLine().toString();
+
                     if (null == message || "Kesildi".contentEquals(message)) {
                         Thread.interrupted();
                         message = "Server Bağlantısı Kapandı.";
                         showMessage(message, Color.RED);
                         break;
+                    }else {
+
+                        try {//gelen string input parse edilip sqlite' a kaydedilmeye calisilir
+                            String[] values = message.split(",");
+                            MobileDataPackage mdp = new MobileDataPackage();
+                            mdp.date = values[0];
+                            mdp.wbData.temp = Float.parseFloat(values[1]);
+                            mdp.wbData.pulse = Float.parseFloat(values[2]);
+                            mdp.wbData.pX = Float.parseFloat(values[3]);
+                            mdp.wbData.pY = Float.parseFloat(values[4]);
+                            mdp.wbData.pZ = Float.parseFloat(values[5]);
+                            myDB.insert_serverdata(mdp);
+                            showMessage("\ngelen veri :"+ (success++) + mdp.toString(), clientTextColor);
+                        }catch (Exception e){
+
+                            showMessage(message, clientTextColor);
+                        }
+
                     }
-                    showMessage("Server: " + message, clientTextColor);
+
+                    //showMessage("Server: " + message, clientTextColor);
                 }
 
             } catch (UnknownHostException e1) {
@@ -152,7 +184,7 @@ public class ServerConnect extends AppCompatActivity implements View.OnClickList
     protected void onDestroy() {
         super.onDestroy();
         if (null != clientThread) {
-            clientThread.sendMessage("Kesildi");
+            clientThread.sendMessage("Server Bağlantısı Kapandı");
             clientThread = null;
         }
     }

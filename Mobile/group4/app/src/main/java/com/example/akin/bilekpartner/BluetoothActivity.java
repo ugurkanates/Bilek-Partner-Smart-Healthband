@@ -3,6 +3,7 @@ package com.example.akin.bilekpartner;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
@@ -20,7 +21,7 @@ public class BluetoothActivity extends AppCompatActivity {
 
     final String ON = "1";
     final String OFF = "0";
-
+    int flag=0;
     BluetoothSPP bluetooth;
 
     Button connect;
@@ -33,7 +34,6 @@ public class BluetoothActivity extends AppCompatActivity {
         setContentView(R.layout.bluetooth_login);
         bottomNavigate();
         bluetooth = new BluetoothSPP(this);
-
         connect = (Button) findViewById(R.id.connect);
         on = (Button) findViewById(R.id.on);
         off = (Button) findViewById(R.id.off);
@@ -53,7 +53,7 @@ public class BluetoothActivity extends AppCompatActivity {
             }
 
             public void onDeviceConnectionFailed() {
-                connect.setText("Unable to connect");
+                connect.setText("Tekrar Dene");
             }
         });
 
@@ -63,7 +63,8 @@ public class BluetoothActivity extends AppCompatActivity {
                 if (bluetooth.getServiceState() == BluetoothState.STATE_CONNECTED) {
                     bluetooth.disconnect();
                 } else {
-                    Intent intent = new Intent(getApplicationContext(), DeviceList.class);
+
+                    Intent intent = new Intent(BluetoothActivity.this, DeviceList.class);
                     startActivityForResult(intent, BluetoothState.REQUEST_CONNECT_DEVICE);
                 }
             }
@@ -95,6 +96,7 @@ public class BluetoothActivity extends AppCompatActivity {
                 bluetooth.startService(BluetoothState.DEVICE_OTHER);
             }
         }
+        flag=1;
     }
 
 
@@ -112,7 +114,7 @@ public class BluetoothActivity extends AppCompatActivity {
                 bluetooth.setupService();
             } else {
                 Toast.makeText(getApplicationContext()
-                        , "Bluetooth was not enabled."
+                        , "Bluetooth açık değil."
                         , Toast.LENGTH_SHORT).show();
                 finish();
             }
