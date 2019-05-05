@@ -14,6 +14,8 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <strings.h>
+#include <string.h>
 #elif _WIN32
 #pragma once
 #define WIN32_LEAN_AND_MEAN
@@ -30,8 +32,13 @@
 #define ERROR 0
 #define ERROR_CODE -1
 #define DEFAULT 0
+#define DEFAULT_OPTIONS 0
 #define WS_VERSION 0x0202
+#ifdef _WIN32
 #define SERVER_IP "127.0.0.1"
+#elif 
+#define SERVER_IP "0.0.0.0"
+#endif
 #define SERVER_PORT "1379"  // Serverýn Public olarak çalýþmasý için, modeminizden program çalýþtýrýldýðý zaman yazan IP'ye bu PORT'u Forwardlamanýz gerekmektedir. 
 #define BUFFER_SIZE 256
 #define DATE_BUFFER_SIZE 30

@@ -1,0 +1,3 @@
+Önce serverı çalıştırıp "Established" içeren mesajı bekleyin. 
+Ardından Bilekliği çalıştırıp kendini kapatana kadar açık bırakın. Bileklik bağlanıp Serverın database'ini dolduruyor 30sn boyunca.
+Son olarak Mobile çalıştırıp server içerisinde ki mobil fonksyonlarını test edin.

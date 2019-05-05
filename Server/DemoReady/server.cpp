@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "server.h"
 
 bool Server::serverOn = true;
@@ -7,11 +6,6 @@ std::vector<std::thread> Server::clientThreads;
 Server::Server()
 {
 
-}
-
-Server::~Server(){
-
-	
 }
 
 void Server::StartServer() {
@@ -46,7 +40,7 @@ void Server::StartServer() {
 	//Bind IP & Port to serverAddress
 	serverAddress.sin_family = AF_INET;
 	serverAddress.sin_port = htons(SERVER_PORT);
-	serverAddress.sin_addr.S_un.S_addr = INADDR_ANY;  // TODO : Sorun çýkarsa inet_pton ile dene
+	serverAddress.sin_addr.S_un.S_addr = INADDR_ANY;  // TODO : Sorun Ã§Ã½karsa inet_pton ile dene
 	//inet_pton(AF_INET, "127.0.0.1", &serverAddress.sin_addr);
 
 
@@ -57,11 +51,6 @@ void Server::StartServer() {
 		exit(EXIT_FAILURE);
 	}
 
-	
-
-	serverOn = true;
-
-	ListenClients();
 	
 
 	
@@ -83,8 +72,8 @@ void Server::StartServer() {
 
 	//Socket address structure
 	serverAddress.sin_family = AF_INET;
-	socketAddress.sin_addr.s_addr = inet_addr("0.0.0.0");
-	socketAddress.sin_port = htons(stoi(SERVER_PORT));
+	serverAddress.sin_addr.s_addr = inet_addr("0.0.0.0");
+	serverAddress.sin_port = htons(SERVER_PORT);
 
 	if (bind(serverSocket, (sockaddr*)&serverAddress, sizeof(sockaddr)) == ERROR_CODE) {
 		std::cerr << "\nError -> Server address binding failed\n";
@@ -92,12 +81,16 @@ void Server::StartServer() {
 	}
 
 
-	if (listen(serverSocket, 1) == ERROR_CODE) {
+	if (listen(serverSocket, clientLimit) == ERROR_CODE) {
 		std::cerr << "\Error -> Server failed to listen bound socket" << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
 #endif
+
+	serverOn = true;
+	ListenClients();
+	
 }
 
 void Server::CloseServer() {
@@ -151,25 +144,23 @@ void Server::ListenClients() {
 	//Wait for a client connection.
 	if (listen(serverSocket, clientLimit)) {
 		std::cerr << std::endl << "ERROR -> Failed to listen server socket " << std::endl;
-		closesocket(serverSocket);
-		WSACleanup();
+		close(serverSocket);
 		exit(EXIT_FAILURE);
 	}
 
 
 #endif
-
-	std::cout << "\nServer established on " << GetDate() << " , waiting for clients" << std::endl;
+	std::cerr << "\nServer established on " << GetDate() << " , waiting for clients" << std::endl;
 
 	mamaThread = std::thread(&AcceptClients, serverSocket);
 
 }
 
 void Server::AcceptClients(int serverSocket){
+	sockaddr_in clientAddress;
 #ifdef _WIN32
 	//Accept client
 	SOCKET clientSocket;
-	sockaddr_in clientAddress;
 
 	while (serverOn) {
 
@@ -203,25 +194,22 @@ void Server::AcceptClients(int serverSocket){
 
 	}
 
-
-
-
 #elif __linux__
 
 	int clientSocket;
 
 	while (serverOn) {
-		if (clientSocket = accept(serverSocket, nullptr, nullptr) == ERROR_CODE) {
+		if ((clientSocket = accept(serverSocket, nullptr, nullptr)) == ERROR_CODE) {
 			if (errno != EINVAL) {
 				std::cerr << "\nError -> Connection attempt with client failed. ~ " << errno << std::endl;
 			}
 		}else {
-			//GetMessageFromClient(clientSocket);
-			std::thread clientServantThread(GetMessageFromClient, clientSocket);
+			std::thread clientServantThread(VerifyClient, clientSocket);
 			clientThreads.push_back(std::move(clientServantThread));
-			}
+		}
+		
 	}
-
+	
 
 #endif
 
@@ -234,18 +222,17 @@ void Server::VerifyClient(int clientSocket) {
 	bool clientConnected = true;
 
 	memset(buffer, '\0', BUFFER_SIZE);
-
 	while (serverOn && clientConnected) {
-		bytesRead = recv(clientSocket, buffer, BUFFER_SIZE, DEFAULT);
+		bytesRead = recv(clientSocket, buffer, BUFFER_SIZE-1, DEFAULT);
 		if (bytesRead > ZERO) {
 			if (buffer[0] == 'B') {
-				//Bileklik baðlandý, gerekli fn'leri çaðýrýp verileri kaydetmeye baþla
+				//Bileklik baÃ°landÃ½, gerekli fn'leri Ã§aÃ°Ã½rÃ½p verileri kaydetmeye baÃ¾la
 				std::cout << "\n ~ BilekPartner connected.\n\n";
 				HandleWristband(clientSocket);
 				clientConnected = false;
 			}
 			else if (buffer[0] == 'M') {
-				// Mobil baðlandý, gerekli fn'leri çaðýrýp iletiþime baþla.
+				// Mobil baÃ°landÃ½, gerekli fn'leri Ã§aÃ°Ã½rÃ½p iletiÃ¾ime baÃ¾la.
 				std::cout << "\n ~ MobileApp connected\n\n";
 				HandleMobile(clientSocket);
 				clientConnected = false;
@@ -255,7 +242,7 @@ void Server::VerifyClient(int clientSocket) {
 			}
 
 		} else {
-			std::cout << "\nUnknown client connected. Closing socket.\n\n";
+			std::cout << "\nConnection Error.\n\n";
 			clientConnected = false;
 		}
 	}
@@ -372,7 +359,7 @@ void Server::FirstLoad(int clientSocket){
 
 	wristBandFile.close();
 
-	printf("First Load finished\n");
+	printf("\nFirst Load finished\n\n");
 }
 
 void Server::UpdateServer(int clientSocket){
@@ -410,7 +397,7 @@ void Server::UpdateServer(int clientSocket){
 	}
 	wristBandFile.close();
 
-	printf("Exiting UpdateServer\n");
+	printf("\nExiting UpdateServer\n\n");
 }
 
 void Server::UpdateDataBase(int clientSocket, std::string updateDate){
@@ -453,9 +440,7 @@ void Server::UpdateDataBase(int clientSocket, std::string updateDate){
 	printf("Exiting UpdateDataBase\n");
 }
 
-
-
-
+#ifdef _WIN32
 std::string Server::GetIPAddress() {
 	using namespace std;
 	string line;
@@ -478,6 +463,7 @@ std::string Server::GetIPAddress() {
 	std::cout << "\nIP Address -> " << ip << std::endl;
 	return ip;
 }
+#endif
 
 std::string Server::GetDate() {
 	std::string date;

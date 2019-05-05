@@ -1,0 +1,12 @@
+mobile:	compile
+
+
+execName = bileklikMainLINUX
+
+
+compile:
+	g++ -std=c++17  bileklikTestMain.cpp bileklikTest.cpp -o $(execName) 
+	./$(execName)
+
+
+

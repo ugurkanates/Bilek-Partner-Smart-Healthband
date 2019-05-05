@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "mobileTest.h"
 
 int main(){

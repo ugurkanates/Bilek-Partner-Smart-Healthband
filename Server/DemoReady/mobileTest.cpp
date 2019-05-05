@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "mobileTest.h"
 
 
@@ -113,10 +112,10 @@ void mobileTest::ConnectToServer(){
 	}
 
 	// Filling server address structure
-	server = gethostbyname(ip.c_str());
+	server = gethostbyname(SERVER_IP);
 	bcopy((char *)server->h_addr, (char*)&serverAddress.sin_addr.s_addr, sizeof(serverAddress));
 	serverAddress.sin_family = AF_INET;
-	serverAddress.sin_port = htons(atoi(port.c_str()));
+	serverAddress.sin_port = htons(atoi(SERVER_PORT));
 
 	// Connecting to server
 	if (connect(serverSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) == ERROR_CODE) {
@@ -132,18 +131,23 @@ void mobileTest::HandshakeWithServer(){
 	int bytesReadSent = 0;
 	char buffer[BUFFER_SIZE];
 	//Send Confirmation Char
-	bytesReadSent = send(serverSocket, "M", 1, 0);
+	buffer[0] ='M';
+	memset(buffer,'M',BUFFER_SIZE);
+	bytesReadSent = send(serverSocket, buffer, BUFFER_SIZE, 0);
+printf("ADASDADASD");
 	if (bytesReadSent == ERROR_CODE) {
-		printf("send failed with error: %d\n", WSAGetLastError());
 #ifdef _WIN32
+		printf("send failed with error: %d\n", WSAGetLastError());
 		closesocket(serverSocket);
 		WSACleanup();
 #elif __linux__
+		printf("send failed with error\n");
 		close(serverSocket);
 #endif
 		exit(EXIT_FAILURE);
 	}
-	bytesReadSent = recv(serverSocket, buffer, 1, 0);
+
+	bytesReadSent = recv(serverSocket, buffer, BUFFER_SIZE, 0);
 	if (bytesReadSent == ERROR_CODE || buffer[0] != 'S') {
 		printf("recv failed with error\n");
 #ifdef _WIN32

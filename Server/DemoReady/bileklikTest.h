@@ -1,3 +1,6 @@
+#ifndef CLIENT_H
+#define CLIENT_H
+
 #include <iostream>
 #include <string>
 #include <thread>
@@ -14,6 +17,8 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <string.h>
+#include <strings.h>
 #elif _WIN32
 #pragma once
 #define WIN32_LEAN_AND_MEAN
@@ -27,16 +32,20 @@
 
 
 #define ZERO 0
-#define ERROR 0
 #define ERROR_CODE -1
+#define ERROR 0
 #define DEFAULT 0
+#define DEFAULT_OPTIONS 0
 #define WS_VERSION 0x0202
+#ifdef _WIN32
 #define SERVER_IP "127.0.0.1"
+#elif 
+#define SERVER_IP "0.0.0.0"
+#endif
 #define SERVER_PORT "1379"  // Serverýn Public olarak çalýþmasý için, modeminizden program çalýþtýrýldýðý zaman yazan IP'ye bu PORT'u Forwardlamanýz gerekmektedir. 
 #define BUFFER_SIZE 256
 #define DATE_BUFFER_SIZE 30
 #define SLEEP_MILISEC 1000
-#define DATABASE_FILENAME "MobileDatabase.csv"
 
 struct WristBandDataPackage {
 	float temp;
@@ -51,24 +60,21 @@ struct MobileDataPackage {
 	WristBandDataPackage wbData;
 };
 
-class mobileTest{
+
+
+class BilekPartner {
 
 public:
-	mobileTest();
-	~mobileTest();
-
+	BilekPartner();
+	~BilekPartner();
 	void ConnectToServer();
-	void HandshakeWithServer();
-	void FirstLoad();
-	void UpdateServer();
-	void UpdateDatabase();
-	void GenerateData();
-
+	void SendDataToServer();
 private:
+
 	int serverSocket;
-	std::string GetDate();
-	std::string firstGenData;
-	int flCount = 0;
+
+
 
 };
 
+#endif
