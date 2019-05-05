@@ -5,7 +5,7 @@
         android:fromXDelta="0"
         android:toXDelta="-100%p"
         android:duration="500"/>
-    <alpha android:fromAlpha="0.9"
+    <alpha android:fromAlpha="0.90"
         android:toAlpha="1.0"
         android:duration="500" />
 </set>

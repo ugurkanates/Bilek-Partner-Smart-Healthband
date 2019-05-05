@@ -122,9 +122,15 @@ public class MainActivity  extends AppCompatActivity{
                                 startActivity(intent3);
                                 finish();
                                 break;
+
                             case R.id.item3:
-                                Intent intent2 = new Intent(MainActivity.this, Settings.class);
+                                Intent intent2 = new Intent(MainActivity.this, analyze.class);
                                 startActivity(intent2);
+                                finish();
+                                break;
+                            case R.id.item4:
+                                Intent intent4 = new Intent(MainActivity.this, Settings.class);
+                                startActivity(intent4);
                                 finish();
                                 break;
                         }

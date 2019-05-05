@@ -1,0 +1,154 @@
+{
+    "logs": [
+        {
+            "outputFile": "C:\\Users\\Quercus\\Desktop\\mobilev3\\Mobile\\group4\\progressviewslib\\build\\intermediates\\res\\merged\\release\\values\\values.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\Quercus\\Desktop\\mobilev3\\Mobile\\group4\\progressviewslib\\src\\main\\res\\values\\dimens.xml",
+                    "from": {
+                        "startLines": "3,4,9,8",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "89,147,282,231",
+                        "endColumns": "57,55,61,50",
+                        "endOffsets": "142,198,339,277"
+                    },
+                    "to": {
+                        "startLines": "6,7,8,9",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "568,626,682,744",
+                        "endColumns": "57,55,61,50",
+                        "endOffsets": "621,677,739,790"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\Quercus\\Desktop\\mobilev3\\Mobile\\group4\\progressviewslib\\src\\main\\res\\values\\strings.xml",
+                    "from": {
+                        "startLines": "5,3,4,6",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "160,56,107,212",
+                        "endColumns": "51,50,52,45",
+                        "endOffsets": "207,102,155,253"
+                    },
+                    "to": {
+                        "startLines": "10,11,12,13",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "795,847,898,951",
+                        "endColumns": "51,50,52,45",
+                        "endOffsets": "842,893,946,992"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\Quercus\\Desktop\\mobilev3\\Mobile\\group4\\progressviewslib\\src\\main\\res\\values\\styles.xml",
+                    "from": {
+                        "startLines": "6,15",
+                        "startColumns": "4,4",
+                        "startOffsets": "186,482",
+                        "endLines": "12,17",
+                        "endColumns": "12,12",
+                        "endOffsets": "444,637"
+                    },
+                    "to": {
+                        "startLines": "14,21",
+                        "startColumns": "4,4",
+                        "startOffsets": "997,1259",
+                        "endLines": "20,23",
+                        "endColumns": "12,12",
+                        "endOffsets": "1254,1414"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\Quercus\\Desktop\\mobilev3\\Mobile\\group4\\progressviewslib\\src\\main\\res\\values\\colors.xml",
+                    "from": {
+                        "startLines": "24,23,22",
+                        "startColumns": "4,4,4",
+                        "startOffsets": "928,879,832",
+                        "endColumns": "50,48,46",
+                        "endOffsets": "974,923,874"
+                    },
+                    "to": {
+                        "startLines": "2,3,4",
+                        "startColumns": "4,4,4",
+                        "startOffsets": "55,106,155",
+                        "endColumns": "50,48,46",
+                        "endOffsets": "101,150,197"
+                    }
+                }
+            ]
+        },
+        {
+            "outputFile": "C:\\Users\\Quercus\\Desktop\\mobilev3\\Mobile\\group4\\progressviewslib\\build\\intermediates\\incremental\\mergeReleaseResources\\merged.dir\\values\\values.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\Quercus\\Desktop\\mobilev3\\Mobile\\group4\\progressviewslib\\src\\main\\res\\values\\dimens.xml",
+                    "from": {
+                        "startLines": "3,4,9,8",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "89,147,282,231",
+                        "endColumns": "57,55,61,50",
+                        "endOffsets": "142,198,339,277"
+                    },
+                    "to": {
+                        "startLines": "6,7,8,9",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "568,626,682,744",
+                        "endColumns": "57,55,61,50",
+                        "endOffsets": "621,677,739,790"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\Quercus\\Desktop\\mobilev3\\Mobile\\group4\\progressviewslib\\src\\main\\res\\values\\strings.xml",
+                    "from": {
+                        "startLines": "5,3,4,6",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "160,56,107,212",
+                        "endColumns": "51,50,52,45",
+                        "endOffsets": "207,102,155,253"
+                    },
+                    "to": {
+                        "startLines": "10,11,12,13",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "795,847,898,951",
+                        "endColumns": "51,50,52,45",
+                        "endOffsets": "842,893,946,992"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\Quercus\\Desktop\\mobilev3\\Mobile\\group4\\progressviewslib\\src\\main\\res\\values\\styles.xml",
+                    "from": {
+                        "startLines": "6,15",
+                        "startColumns": "4,4",
+                        "startOffsets": "186,482",
+                        "endLines": "12,17",
+                        "endColumns": "12,12",
+                        "endOffsets": "444,637"
+                    },
+                    "to": {
+                        "startLines": "14,21",
+                        "startColumns": "4,4",
+                        "startOffsets": "997,1259",
+                        "endLines": "20,23",
+                        "endColumns": "12,12",
+                        "endOffsets": "1254,1414"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\Quercus\\Desktop\\mobilev3\\Mobile\\group4\\progressviewslib\\src\\main\\res\\values\\colors.xml",
+                    "from": {
+                        "startLines": "24,23,22",
+                        "startColumns": "4,4,4",
+                        "startOffsets": "928,879,832",
+                        "endColumns": "50,48,46",
+                        "endOffsets": "974,923,874"
+                    },
+                    "to": {
+                        "startLines": "2,3,4",
+                        "startColumns": "4,4,4",
+                        "startOffsets": "55,106,155",
+                        "endColumns": "50,48,46",
+                        "endOffsets": "101,150,197"
+                    }
+                }
+            ]
+        }
+    ]
+}

@@ -148,6 +148,50 @@
                         android:layout_height="@dimen/dimen_1"
                         android:background="@color/view_line" />
                     <EditText
+                        android:id="@+id/emer_name"
+                        style="@style/Font_family_light"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="#80000000"
+                        android:drawableLeft="@drawable/ic_person"
+                        android:drawablePadding="@dimen/padding_8"
+                        android:hint="Acil Durum kişisi"
+                        android:inputType="text"
+                        android:maxLength="30"
+                        android:maxLines="1"
+                        android:padding="@dimen/padding_16"
+                        android:textColor="@color/white"
+                        android:textColorHint="@color/white"
+                        android:textSize="@dimen/text_18" />
+
+                    <View
+                        style="@style/Normal_Margin_Style"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/dimen_1"
+                        android:background="@color/view_line" />
+                    <EditText
+                        android:id="@+id/emer_num"
+                        style="@style/Font_family_light"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="#80000000"
+                        android:drawablePadding="@dimen/padding_8"
+                        android:hint="Acil Durum Numara"
+                        android:ems="10"
+                        android:inputType="number"
+                        android:maxLength="50"
+                        android:maxLines="1"
+                        android:padding="@dimen/padding_16"
+                        android:textColor="@color/white"
+                        android:textColorHint="@color/white"
+                        android:textSize="@dimen/text_18" />
+
+                    <View
+                        style="@style/Normal_Margin_Style"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/dimen_1"
+                        android:background="@color/view_line" />
+                    <EditText
                         android:id="@+id/ageInput"
                         style="@style/Font_family_light"
                         android:layout_width="match_parent"

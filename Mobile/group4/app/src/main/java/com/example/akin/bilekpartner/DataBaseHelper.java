@@ -15,6 +15,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class DataBaseHelper extends SQLiteOpenHelper {
 
     private static final String TABLE_NAME_USER = "USER";
+    private static final String TABLE_NAME_GOAL = "GOAL";
     private static final String TABLE_NAME_SERVERDATA= "SERVERDATA";
 
     public DataBaseHelper(Context context){
@@ -32,7 +33,16 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                     "weight int," +
                     " height int," +
                     "email text," +
-                    "password text)");
+                    "password text,"+"emername text,"+"emernum text)");
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        try {
+            sqLiteDatabase.execSQL("Create table GOAL(" +
+                    "walk  int ," +
+                    "run int," +
+                    "weight int,"+"id int)");
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -59,8 +69,21 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME_USER);
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME_SERVERDATA);
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME_GOAL);
     }
-    public boolean insert(String name,String number,int age,int weight,int height,String email,String password){
+    public boolean insert_goal(int walk,int run,int weight){
+        SQLiteDatabase db=this.getWritableDatabase();
+        ContentValues cv= new ContentValues();
+        cv.put("walk",walk);
+        cv.put("run",run);
+        cv.put("weight",weight);
+        cv.put("id",1);
+        long insertData =db.insert("GOAL",null,cv);
+        if(insertData==-1)
+            return false;
+        return true;
+    }
+    public boolean insert(String name,String number,int age,int weight,int height,String email,String password,String emername,String emernum){
         SQLiteDatabase db=this.getWritableDatabase();
         ContentValues cv= new ContentValues();
         cv.put("name",name);
@@ -70,6 +93,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         cv.put("height",height);
         cv.put("email",email);
         cv.put("password",password);
+        cv.put("emername",emername);
+        cv.put("emernum",emernum);
         long insertData =db.insert("user",null,cv);
         if(insertData==-1)
             return false;
@@ -137,6 +162,18 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         if(cr.getCount()>0) return false;
         return true;
     }
+    public boolean getGoals(int arr[]){
+        SQLiteDatabase db=getReadableDatabase();
+        Cursor cr=db.rawQuery("Select * from GOAL where id=1",null);
+        if(cr!= null && cr.moveToFirst()) {
+            arr[0]=cr.getInt(0);
+            arr[1]=cr.getInt(1);
+            arr[2]=cr.getInt(2);
+            cr.close();
+            return true;
+        }
+        return false;
+    }
 
 
     /*tabloya girilen son veriyi MobileDataPackage classi tipinde cikti olarak verir*/
@@ -189,6 +226,24 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         int count = cursor.getCount();
         cursor.close();
         return count;
+    }
+    public Float getAvgTemperature( ) {
+        String countQuery = "SELECT  AVG( TEP ) FROM SERVERDATA "  ;
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(countQuery, null);
+        cursor.moveToFirst();
+        String avg = cursor.getString(0);
+        cursor.close();
+        return Float.valueOf(avg);
+    }
+    public Float getAvgPulse( ) {
+        String countQuery = "SELECT  AVG( PULSE ) FROM SERVERDATA "  ;
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(countQuery, null);
+        cursor.moveToFirst();
+        String avg = cursor.getString(0);
+        cursor.close();
+        return Float.valueOf(avg);
     }
 
 

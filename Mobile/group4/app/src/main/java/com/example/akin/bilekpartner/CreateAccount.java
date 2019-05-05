@@ -28,6 +28,8 @@ public class CreateAccount extends AppCompatActivity {
     EditText height;
     EditText email;
     EditText password;
+    EditText emernum;
+    EditText emername;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,6 +42,8 @@ public class CreateAccount extends AppCompatActivity {
         email=findViewById(R.id.email1);
         password=findViewById(R.id.password1);
         Button logingA=findViewById(R.id.loginAgain);
+        emername=findViewById(R.id.emer_name);
+        emernum=findViewById(R.id.emer_num);
         logingA.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -59,13 +63,16 @@ public class CreateAccount extends AppCompatActivity {
                 String c4=height.getText().toString();
                 String e6= email.getText().toString();
                 String e7=password.getText().toString();
-                if(e1.equals("")||c1.equals("")||c2.equals("")||c3.equals("")||c4.equals("")||e6.equals("")||e7.equals("")){
+                String e8=emernum.getText().toString();
+                String c5=emernum.getText().toString();
+                String e9=emername.getText().toString();
+                if(e1.equals("")||c1.equals("")||c2.equals("")||c3.equals("")||c4.equals("")||c5.equals("")||e6.equals("")||e7.equals("")||e9.equals("")){
                     Toast.makeText(getApplicationContext(),"Tüm Alanları Doldurunuz.",Toast.LENGTH_SHORT).show();
                 }
-                if(c1.length()<11) {
+                if(c1.length()<11 || c5.length()<11) {
                     Toast.makeText(getApplicationContext(), "Geçerli Bir Numara Giriniz.", Toast.LENGTH_SHORT).show();
                 }
-               else{
+                else{
                     int e3=Integer.valueOf(age.getText().toString());
                     int e4=Integer.valueOf(c3);
                     boolean ch=db.checkEmail(e6);
@@ -73,18 +80,21 @@ public class CreateAccount extends AppCompatActivity {
                     if(e3<=0||e4<=0||e5<=0){
                         Toast.makeText(getApplicationContext(), "Yanlış Bilgi Formatı.", Toast.LENGTH_SHORT).show();
                     }
-                    else if(c1.indexOf("0")!=0 || c1.indexOf("5")!=1){
+                    else if(c1.indexOf("0")!=0 || c1.indexOf("5")!=1 ){
+                        Toast.makeText(getApplicationContext(), "Yanlış Telefon Numarası Formatı.", Toast.LENGTH_SHORT).show();
+                    }
+                    else if(c5.indexOf("0")!=0 || c5.indexOf("5")!=1 ){
                         Toast.makeText(getApplicationContext(), "Yanlış Telefon Numarası Formatı.", Toast.LENGTH_SHORT).show();
                     }
                     else if(ch==true){
-                        boolean insert=db.insert(e1,c1,e3,e4,e5,e6,e7);
+                        boolean insert=db.insert(e1,c1,e3,e4,e5,e6,e7,e9,c5);
                         if(insert==true){
                             Toast.makeText(getApplicationContext(),"Kayıt Başarılı.",Toast.LENGTH_SHORT).show();
                             Intent intent = new Intent(CreateAccount.this, LoginActivity.class);
                             startActivity(intent);
                         }
                         else{
-                            Toast.makeText(getApplicationContext(),"Farklı Bir Email Giriniz",Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(),"Bilgileri Kontrol Ediniz",Toast.LENGTH_SHORT).show();
                         }
                     }
                     else{

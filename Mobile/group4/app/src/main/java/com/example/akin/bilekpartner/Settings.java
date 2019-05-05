@@ -37,6 +37,15 @@ public class Settings extends AppCompatActivity {
                 finish();
             }
         });
+        Button bt=findViewById(R.id.feedbackText);
+        bt.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(Settings.this, GoalsActivity.class);
+                startActivity(intent);
+                finish();
+            }
+        });
         Button exit=findViewById(R.id.exit);
         exit.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -78,6 +87,14 @@ public class Settings extends AppCompatActivity {
                                 finish();
                                 break;
                             case R.id.item3:
+                                Intent intent3 = new Intent(Settings.this, analyze.class);
+                                startActivity(intent3);
+                                finish();
+                                break;
+                            case R.id.item4:
+                                Intent intent4 = new Intent(Settings.this, Settings.class);
+                                startActivity(intent4);
+                                finish();
                                 break;
                         }
                         return true;

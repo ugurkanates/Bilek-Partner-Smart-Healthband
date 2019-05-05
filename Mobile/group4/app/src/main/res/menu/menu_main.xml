@@ -16,6 +16,12 @@
         <item
             android:id="@+id/item3"
             android:checked="false"
+            android:icon="@drawable/overview"
+            android:title="Haftalık Özet"/>
+
+        <item
+            android:id="@+id/item4"
+            android:checked="false"
             android:icon="@drawable/settings"
             android:title="Ayarlar"/>
     </group>

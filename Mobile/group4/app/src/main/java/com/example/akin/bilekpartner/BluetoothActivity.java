@@ -143,8 +143,13 @@ public class BluetoothActivity extends AppCompatActivity {
                                 finish();
                                 break;
                             case R.id.item3:
-                                Intent intent3 = new Intent(BluetoothActivity.this, Settings.class);
+                                Intent intent3 = new Intent(BluetoothActivity.this, analyze.class);
                                 startActivity(intent3);
+                                finish();
+                                break;
+                            case R.id.item4:
+                                Intent intent4 = new Intent(BluetoothActivity.this, Settings.class);
+                                startActivity(intent4);
                                 finish();
                                 break;
                         }

@@ -108,8 +108,13 @@ public class InstantStateActivity extends AppCompatActivity {
                                 finish();
                                 break;
                             case R.id.item3:
-                                Intent intent2 = new Intent(InstantStateActivity.this, Settings.class);
-                                startActivity(intent2);
+                                Intent intent4 = new Intent(InstantStateActivity.this, analyze.class);
+                                startActivity(intent4);
+                                finish();
+                                break;
+                            case R.id.item4:
+                                Intent intent5 = new Intent(InstantStateActivity.this, Settings.class);
+                                startActivity(intent5);
                                 finish();
                                 break;
                         }
