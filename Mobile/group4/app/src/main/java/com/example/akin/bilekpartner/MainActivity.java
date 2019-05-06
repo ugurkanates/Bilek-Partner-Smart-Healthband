@@ -2,6 +2,8 @@ package com.example.akin.bilekpartner;
 
 
 import android.app.AlertDialog;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
@@ -10,6 +12,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
+import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -24,6 +27,11 @@ import com.natasa.progressviews.CircleProgressBar;
 
 import org.w3c.dom.Text;
 
+import java.util.ArrayList;
+import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
+
 /**
  * Created by AKIN Ç on 15.04.2019.
  * Update by Hasna on 4.05.2019
@@ -33,6 +41,8 @@ public class MainActivity  extends AppCompatActivity{
 
     DataBaseHelper myDB;
     Button button;
+    ArrayList<String> titleArray = new ArrayList<String>();
+    ArrayList<String> textArray = new ArrayList<String>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,6 +50,29 @@ public class MainActivity  extends AppCompatActivity{
         setContentView(R.layout.activity_main);
         myDB=new DataBaseHelper(this);
         bottomNavigate();
+        titleArray.add("Saglik Uyarisi");
+        titleArray.add("Guvenlik Uyarisi");
+        titleArray.add("Saglik Tavsiyesi");
+        titleArray.add("Saglikli Yasam Icın");
+        titleArray.add("Yeme Icme Onerisi");
+
+        textArray.add("1 saat boyunca hareket etmediniz,sağlıklı kalmak için lütfen birlikte hemen hareket edelim"
+        );
+        textArray.add("Düne göre 3 KM daha az yürüdünüz :( , haydi biraz yürüyelim"
+        );
+        textArray.add("Hey hey biraz sakin olalım , kalp atışınız beklenen değerlerin üzerinde küçük bir mola ?"
+        );
+        textArray.add("Sağlıklı yaşayabilmek için günde en az 2 litre su tüketmelisiniz "
+        );
+        textArray.add("Uyku düzenine dikkat etmelisiniz bugün düne göre 3 saat az uyudunuz"
+        );
+        textArray.add("Stres kan basıncını yükselterek sakin insanlara göre kalp hastalıklarına yakalanma oranını 3 kat artıran bir faktör"
+
+        );
+        textArray.add("Kan basıncınızı gözlemlemeyi sürdürün. Çünkü bu en büyük risk faktörüdür. Kalp krizlerinin yüzde 40'ına 125/85 ve 140/90 aralığındaki tansiyon neden olur"
+
+        );
+
         MobileDataPackage mdp = new MobileDataPackage();
         mdp.date = "S2019 05 05 03:16:18";
         mdp.wbData.temp = Float.parseFloat("36.0");
@@ -75,7 +108,24 @@ public class MainActivity  extends AppCompatActivity{
         /*burda surekli bu islemi yapmasini istedim
         islem dedigim databaseden bilgileri alip processbarlari guncellemesi
         ! calismiyor olabilir test edemedim serverdan surekli bilgi aldiginda bakilabilir*/
-
+        final Handler handler2 = new Handler();
+        Random rand = new Random();
+        final int value = rand.nextInt(5);
+        final int value2 = rand.nextInt(7);
+        Timer timer = new Timer(false);
+        TimerTask timerTask = new TimerTask() {
+            @Override
+            public void run() {
+                handler2.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        // Do whatever you want
+                        sendNotification(titleArray.get(value),textArray.get(value2));
+                    }
+                });
+            }
+        };
+        timer.schedule(timerTask, 1000); // 1000 = 1 second.
         final Handler handler=new Handler();
         handler.post(new Runnable(){
             @Override
@@ -155,6 +205,35 @@ public class MainActivity  extends AppCompatActivity{
                     }
                 });
         alertDialog.show();
+
+    }
+    public void sendNotification(String title,String text) {
+
+        //Get an instance of NotificationManager//
+
+        NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.drawable.appintro3)
+                        .setContentTitle(title)
+                        .setContentText(text)
+                        .setStyle(new NotificationCompat.BigTextStyle()
+                                .bigText(text));
+
+
+        // Gets an instance of the NotificationManager service//
+
+        NotificationManager mNotificationManager =
+
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        // When you issue multiple notifications about the same type of event,
+        // it’s best practice for your app to try to update an existing notification
+        // with this new information, rather than immediately creating a new notification.
+        // If you want to update this notification at a later date, you need to assign it an ID.
+        // You can then use this ID whenever you issue a subsequent notification.
+        // If the previous notification is still visible, the system will update this existing notification,
+        // rather than create a new one. In this example, the notification’s ID is 001//
+        mNotificationManager.notify(001, mBuilder.build());
 
     }
 }
