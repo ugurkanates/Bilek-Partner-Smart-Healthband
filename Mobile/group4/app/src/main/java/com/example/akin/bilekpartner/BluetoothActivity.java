@@ -1,161 +1,121 @@
 package com.example.akin.bilekpartner;
 
 import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.support.annotation.NonNull;
-import android.support.design.widget.BottomNavigationView;
-import android.support.v7.app.AppCompatActivity;
-import android.view.MenuItem;
+import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.Set;
 
-import app.akexorcist.bluetotohspp.library.BluetoothSPP;
-import app.akexorcist.bluetotohspp.library.BluetoothState;
-import app.akexorcist.bluetotohspp.library.DeviceList;
+/**
+ * Created by AKIN Ç on 12.05.2019.
+ */
 
-public class BluetoothActivity extends AppCompatActivity {
+public class BluetoothActivity extends Activity{
+    // Debugging for LOGCAT
+    private static final String TAG = "DeviceListActivity";
+    private static final boolean D = true;
 
-    final String ON = "1";
-    final String OFF = "0";
-    int flag=0;
-    BluetoothSPP bluetooth;
 
-    Button connect;
-    Button on;
-    Button off;
+    // declare button for launching website and textview for connection status
+    Button tlbutton;
+    TextView textView1;
+
+    // EXTRA string to send on to mainactivity
+    public static String EXTRA_DEVICE_ADDRESS = "device_address";
+
+    // Member fields
+    private BluetoothAdapter mBtAdapter;
+    private ArrayAdapter<String> mPairedDevicesArrayAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.bluetooth_login);
-        bottomNavigate();
-        bluetooth = new BluetoothSPP(this);
-        connect = (Button) findViewById(R.id.connect);
-        on = (Button) findViewById(R.id.on);
-        off = (Button) findViewById(R.id.off);
-
-        if (!bluetooth.isBluetoothAvailable()) {
-            Toast.makeText(getApplicationContext(), "Bluetooth mevcut değil", Toast.LENGTH_SHORT).show();
-            finish();
-        }
-
-        bluetooth.setBluetoothConnectionListener(new BluetoothSPP.BluetoothConnectionListener() {
-            public void onDeviceConnected(String name, String address) {
-                connect.setText(name);
-            }
-
-            public void onDeviceDisconnected() {
-                connect.setText("Bağlantı Kesildi");
-            }
-
-            public void onDeviceConnectionFailed() {
-                connect.setText("Tekrar Dene");
-            }
-        });
-
-        connect.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (bluetooth.getServiceState() == BluetoothState.STATE_CONNECTED) {
-                    bluetooth.disconnect();
-                } else {
-
-                    Intent intent = new Intent(BluetoothActivity.this, DeviceList.class);
-                    startActivityForResult(intent, BluetoothState.REQUEST_CONNECT_DEVICE);
-                }
-            }
-        });
-
-        on.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                bluetooth.send(ON, true);
-            }
-        });
-
-        off.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                bluetooth.send(OFF, true);
-            }
-        });
-
     }
 
-    public void onStart() {
-        super.onStart();
-        if (!bluetooth.isBluetoothEnabled()) {
-            bluetooth.enable();
+    @Override
+    public void onResume()
+    {
+        super.onResume();
+        //***************
+        checkBTState();
+
+        textView1 = (TextView) findViewById(R.id.connecting);
+        textView1.setTextSize(40);
+        textView1.setText(" ");
+
+        // Initialize array adapter for paired devices
+        mPairedDevicesArrayAdapter = new ArrayAdapter<String>(this, R.layout.device_name);
+
+        // Find and set up the ListView for paired devices
+        ListView pairedListView = (ListView) findViewById(R.id.paired_devices);
+        pairedListView.setAdapter(mPairedDevicesArrayAdapter);
+        pairedListView.setOnItemClickListener(mDeviceClickListener);
+
+        // Get the local Bluetooth adapter
+        mBtAdapter = BluetoothAdapter.getDefaultAdapter();
+
+        // Get a set of currently paired devices and append to 'pairedDevices'
+        Set<BluetoothDevice> pairedDevices = mBtAdapter.getBondedDevices();
+
+        // Add previosuly paired devices to the array
+        if (pairedDevices.size() > 0) {
+            findViewById(R.id.title_paired_devices).setVisibility(View.VISIBLE);//make title viewable
+            for (BluetoothDevice device : pairedDevices) {
+                mPairedDevicesArrayAdapter.add(device.getName() + "\n" + device.getAddress());
+            }
         } else {
-            if (!bluetooth.isServiceAvailable()) {
-                bluetooth.setupService();
-                bluetooth.startService(BluetoothState.DEVICE_OTHER);
-            }
+            String noDevices = getResources().getText(R.string.none_paired).toString();
+            mPairedDevicesArrayAdapter.add(noDevices);
         }
-        flag=1;
     }
 
+    // Set up on-click listener for the list (nicked this - unsure)
+    private AdapterView.OnItemClickListener mDeviceClickListener = new AdapterView.OnItemClickListener() {
+        public void onItemClick(AdapterView<?> av, View v, int arg2, long arg3) {
 
-    public void onDestroy() {
-        super.onDestroy();
-        bluetooth.stopService();
-    }
+            textView1.setText("Bağlanıyor...");
+            // Get the device MAC address, which is the last 17 chars in the View
+            String info = ((TextView) v).getText().toString();
+            String address = info.substring(info.length() - 17);
 
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == BluetoothState.REQUEST_CONNECT_DEVICE) {
-            if (resultCode == Activity.RESULT_OK)
-                bluetooth.connect(data);
-        } else if (requestCode == BluetoothState.REQUEST_ENABLE_BT) {
-            if (resultCode == Activity.RESULT_OK) {
-                bluetooth.setupService();
+            // Make an intent to start next activity while taking an extra which is the MAC address.
+            Intent i = new Intent(BluetoothActivity.this, GetDataFromBluetooth.class);
+            i.putExtra(EXTRA_DEVICE_ADDRESS, address);
+            startActivity(i);
+        }
+    };
+
+    private void checkBTState() {
+        // Check device has Bluetooth and that it is turned on
+        mBtAdapter=BluetoothAdapter.getDefaultAdapter(); // CHECK THIS OUT THAT IT WORKS!!!
+        if(mBtAdapter==null) {
+            Toast.makeText(getBaseContext(), "Bluetooth Desteklenmiyor", Toast.LENGTH_SHORT).show();
+        } else {
+            if (mBtAdapter.isEnabled()) {
+                Log.d(TAG, "...Bluetooth Açık...");
             } else {
-                Toast.makeText(getApplicationContext()
-                        , "Bluetooth açık değil."
-                        , Toast.LENGTH_SHORT).show();
-                finish();
+                //Prompt user to turn on Bluetooth
+                Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                startActivityForResult(enableBtIntent, 1);
+
             }
         }
     }
-    public void onBackPressed() {
+       public void onBackPressed() {
         Intent intent = new Intent(BluetoothActivity.this, Settings.class);
         startActivity(intent);
         finish();
     }
-    public void bottomNavigate(){
-        BottomNavigationView bottomNavigationView = (BottomNavigationView) findViewById(R.id.bottom_navigation);
-        bottomNavigationView.setOnNavigationItemSelectedListener(
-                new BottomNavigationView.OnNavigationItemSelectedListener() {
-                    @Override
-                    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                        switch (item.getItemId()) {
-                            case R.id.item1:
-                                Intent intent = new Intent(BluetoothActivity.this, InstantStateActivity.class);
-                                startActivity(intent);
-                                finish();
-                                break;
-                            case R.id.item2:
-                                Intent intent2 = new Intent(BluetoothActivity.this, MainActivity.class);
-                                startActivity(intent2);
-                                finish();
-                                break;
-                            case R.id.item3:
-                                Intent intent3 = new Intent(BluetoothActivity.this, analyze.class);
-                                startActivity(intent3);
-                                finish();
-                                break;
-                            case R.id.item4:
-                                Intent intent4 = new Intent(BluetoothActivity.this, Settings.class);
-                                startActivity(intent4);
-                                finish();
-                                break;
-                        }
-                        return true;
-                    }
-                });
-    }
-
 }
+

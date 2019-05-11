@@ -20,8 +20,7 @@
     </string>
     <string name="facebook_application_id" translatable="false">207303182991184</string>
     <string name="facebook_login_protocol_scheme" translatable="false">fb207303182991184</string>
-    <string name="facebook_app_id">207303182991184</string>
-    <string name="action_settings">Settings</string>
+    <string name="facebook_app_id">207303182991184</string><string name="action_settings">Settings</string>
     <string name="txt1">Linked Account</string>
     <string name="txt2">Davet Et</string>
     <string name="txt3">Oyla</string>
@@ -46,6 +45,7 @@
     <string name="ageHint">Enter Age</string>
     <string name="ageDB">50</string>
     <string name="basic5">Height</string>
+    <string name="none_paired">No devices have been paired</string>
     <string-array name="HeightDropDownFt">
         <item>3</item>
         <item>4</item>
