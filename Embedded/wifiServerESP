@@ -1,0 +1,78 @@
+/*
+ *  This sketch sends a message to a TCP server
+ *
+ */
+
+#include <WiFi.h>
+#include <WiFiMulti.h>
+
+WiFiMulti WiFiMulti;
+
+void setup()
+{
+    Serial.begin(115200);
+    delay(10);
+
+    // We start by connecting to a WiFi network
+    WiFiMulti.addAP("internet_hayrati", "1234567890");
+
+    Serial.println();
+    Serial.println();
+    Serial.print("Waiting for WiFi... ");
+
+    while(WiFiMulti.run() != WL_CONNECTED) {
+        Serial.print(".");
+        delay(500);
+    }
+
+    Serial.println("");
+    Serial.println("WiFi connected");
+    Serial.println("IP address: ");
+    Serial.println(WiFi.localIP());
+
+    delay(500);
+}
+
+
+void loop()
+{
+    const uint16_t port = 1379;
+    const char * host = "89.107.226.204"; // ip or dns
+
+    Serial.print("Connecting to ");
+    Serial.println(host);
+
+    // Use WiFiClient class to create TCP connections
+    WiFiClient client;
+
+    if (!client.connect(host, port)) {
+        Serial.println("Connection failed.");
+        Serial.println("Waiting 5 seconds before retrying...");
+        delay(5000);
+        return;
+    }
+
+    // This will send a request to the server
+    client.print("B");    //Bilek Partner
+    client.print("_");  
+    client.print("1");    //x
+    client.print("_");    
+    client.print("2.123");//y
+    client.print("_");
+    client.print("3");    //z
+    client.print("_");
+    client.print("4");    //temp
+    client.print("_");
+    client.print("12");   //pulse
+    client.print("-");
+
+    //read back one line from the server
+   // String line = client.readStringUntil('\r');
+   // client.println(line);
+
+    Serial.println("Closing connection.");
+    client.stop();
+
+    Serial.println("Waiting 5 seconds before restarting...");
+    delay(5000);
+}
