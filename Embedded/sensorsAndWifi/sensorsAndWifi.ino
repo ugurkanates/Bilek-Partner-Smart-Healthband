@@ -1,9 +1,12 @@
 #include <MPU6050_tockn.h>
 #include <Wire.h>
 #include "MAX30100_PulseOximeter.h"
+#include <WiFi.h>
+#include <WiFiMulti.h>
 #define SDA_PIN 21
 #define SCL_PIN 22
 MPU6050 mpu6050(Wire);
+
 
 long timer = 0;
 PulseOximeter pox;
@@ -14,6 +17,7 @@ float tempAnalog;
 int kalp_sample_count = 0 ;
 float heartPrint;
 
+WiFiMulti WiFiMulti;
  
 uint32_t tsLastReport = 0;
 float heartCurrent = 70;
@@ -23,31 +27,77 @@ int RawValue= 0;
 double Voltage = 0;
 double tempC = 0;
 
+
+
+     WiFiClient client;
+    const uint16_t port = 1379;
+   const char * host = "89.107.226.204"; // ip or dns
+   //Serial.print("Connecting to ");
+  // Serial.println(host);
+
+
+
+
+    
 void onBeatDetected()
 {
-Serial.println("Beat!");
+//Serial.println("Beat!");
 }
+
+
 
 void setup() {
   Serial.begin(9600);
-  Serial.print("Initializing Pulse and 3-Eksen");
 
-  Wire.begin(SDA_PIN,SCL_PIN);
-  mpu6050.begin();
-  mpu6050.calcGyroOffsets(true);
-  Serial.println("3Ekseninitledi");
-      //kalp init
-      if (!pox.begin()) {
-    Serial.println("FAILED");
-    for(;;);
-    } else {
-    Serial.println("SUCCESS");
+  delay(10);
+  
+  WiFiMulti.addAP("sinanelveren", "sinanelveren");
+    Serial.println();
+    Serial.println();
+    Serial.print("Waiting for WiFi... ");
+   
+    while(WiFiMulti.run() != WL_CONNECTED) {
+        Serial.print(".");
+        WiFiMulti.addAP("sinanelveren", "sinanelveren");
+        delay(500);
     }
-    pox.setOnBeatDetectedCallback(onBeatDetected);
+
+    Serial.println("");
+    Serial.println("WiFi connected");
+    Serial.println("IP address: ");
+    Serial.println(WiFi.localIP());
+
+
+
+
+
+   
+delay(1000);
+
+
+
+
+    Serial.print("Initializing Pulse and 3-Eksen");
+
+
+    Wire.begin(SDA_PIN,SCL_PIN);
+    mpu6050.begin();
+    mpu6050.calcGyroOffsets(true);
+    Serial.println("Calibrated GYRO");
+        //kalp init
+        if (!pox.begin()) {
+      Serial.println("FAILED");
+      for(;;);
+      } else {
+      Serial.println("SUCCESS");
+      }
+      pox.setOnBeatDetectedCallback(onBeatDetected);
 
 }
 
 void loop() {
+
+   
   mpu6050.update();
   pox.update();
 
@@ -63,12 +113,8 @@ void loop() {
      sample_count = 0;
     // delay(1000); 
    }
-   //if(heartCurrent > 50 && heartCurrent <= 150)
-   // heartCurrent = pox.getHeartRate();
-  // else
-   // heartCurrent = 70;
-    
-   if(kalp_sample_count <= 1000){
+
+    if(kalp_sample_count <= 1000){
         heart = pox.getHeartRate();
         
         if(heart > 50 && heart <= 150){
@@ -78,14 +124,20 @@ void loop() {
 
    }
    else{
-       kalp_sample_count = 0;
+       //kalp_sample_count = 0;
        heartPrint = heartCurrent;
    }
-   
+
+
+
+  
    
 
   if(millis() - timer > 1000){
-    
+
+    kalp_sample_count = 0;
+
+
     Serial.println("=======================================================");
     temp = mpu6050.getTemp();
     acX = mpu6050.getAccX();
@@ -112,7 +164,31 @@ void loop() {
     Serial.print("\t Temperature in C = ");
     Serial.print(tempAnalog,1);
  
-    Serial.println("=======================================================\n");
+    Serial.println("\n=======================================================\n\n\n");
+
+
+
+ 
+  Serial.println("Connecting to host");
+  //delay(1000);
+
+       while (!client.connect(host, port)) {
+        Serial.println("Connection failed.");
+        //Serial.println("Waiting 5 seconds before retrying...");
+        delay(5000);
+       // return;
+    }
+/*
+
+    char package[256];
+       sprintf(package,"B_%lf_%lf_%lf_%lf_%lf",acX,acY,acZ,tempAnalog,heartPrint);
+       client.println(package);
+*/
+
+     client.stop();
+
+
+      
     timer = millis();
     
   }
