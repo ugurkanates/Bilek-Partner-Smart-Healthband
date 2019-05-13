@@ -30,65 +30,6 @@ public class InstantStateActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_instant_state);
         bottomNavigate();
-        AlertDialog.Builder alertDialog = new AlertDialog.Builder(InstantStateActivity.this);
-        alertDialog.setTitle("Bluetooth Bağlantısı");
-        alertDialog.setMessage("Bluetooth'a bağlan");
-        alertDialog.setPositiveButton("Evet",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        Intent intent3 = new Intent(InstantStateActivity.this, BluetoothActivity.class);
-                        startActivity(intent3);
-                        finish();
-                    }
-                });
-        alertDialog.setNegativeButton("Test Verileri",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.cancel();
-                    }
-                });
-        alertDialog.setNeutralButton("Ana Sayfa",new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int which) {
-                Intent intent3 = new Intent(InstantStateActivity.this, MainActivity.class);
-                startActivity(intent3);
-                finish();
-            }
-        });
-        alertDialog.show();
-        myDB=new DataBaseHelper(this);
-
-
-        final CircleProgressBar act = (CircleProgressBar) findViewById(R.id.fats_progress1);
-        /*son hareket bilgisi databaseden cekilir ve kac kez yapildigi hesaplanarak process bara gonderilir*/
-        final Handler handler=new Handler();
-        handler.post(new Runnable() {
-                         @Override
-                         public void run() {
-                             int idx = new Random().nextInt(arr.length);
-                             String random = (arr[idx]);
-                             Random rand = new Random();
-                             String minfo = random;
-                             int moveCount = rand.nextInt(20);
-                             if (!minfo.contentEquals("FAIL"))
-                                act.setProgress(moveCount % 360);
-
-                             if (minfo.contentEquals("RUN"))
-                                 act.setText("Şuan Koşuyorsunuz " + moveCount + ". adım ...");
-                             if (minfo.contentEquals("STAIRS"))
-                                 act.setText("Merdiven Çıkıyorsunuz " + moveCount + ". basamak ...");
-                             if (minfo.contentEquals("WALK"))
-                                 act.setText("Şuan Yürüyorsunuz " + moveCount + ". adım ...");
-                             if (minfo.contentEquals("FAIL")) {//anlasilamayan hareketler dinlenme gibi gosterildi
-                                 act.setText("Şuan Dinleniyorsunuz ");
-                                 act.setProgress(0);
-                             }
-                             handler.postDelayed(this,2300); // set time here to refresh data
-
-                         }
-                     });
-        act.setTextSize(50);
-        act.setTextColor(Color.BLACK);
-
     }
     public void bottomNavigate(){
         BottomNavigationView bottomNavigationView = (BottomNavigationView) findViewById(R.id.bottom_navigation);

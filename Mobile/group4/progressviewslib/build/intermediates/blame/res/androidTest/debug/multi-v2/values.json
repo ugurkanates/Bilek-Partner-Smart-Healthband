@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "C:\\aaa\\mobilev3\\Mobile\\group4\\progressviewslib\\build\\intermediates\\incremental\\mergeDebugAndroidTestResources\\merged.dir\\values\\values.xml",
+            "outputFile": "C:\\proje son\\group4\\progressviewslib\\build\\intermediates\\res\\merged\\androidTest\\debug\\values\\values.xml",
             "map": [
                 {
-                    "source": "C:\\aaa\\mobilev3\\Mobile\\group4\\progressviewslib\\build\\intermediates\\packaged_res\\debug\\values\\values.xml",
+                    "source": "C:\\proje son\\group4\\progressviewslib\\build\\intermediates\\packaged_res\\debug\\values\\values.xml",
                     "from": {
                         "startLines": "2,3,4,6,7,8,9,10,11,12,13,14,21",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4",
@@ -17,10 +17,10 @@
             ]
         },
         {
-            "outputFile": "C:\\aaa\\mobilev3\\Mobile\\group4\\progressviewslib\\build\\intermediates\\res\\merged\\androidTest\\debug\\values\\values.xml",
+            "outputFile": "C:\\proje son\\group4\\progressviewslib\\build\\intermediates\\incremental\\mergeDebugAndroidTestResources\\merged.dir\\values\\values.xml",
             "map": [
                 {
-                    "source": "C:\\aaa\\mobilev3\\Mobile\\group4\\progressviewslib\\build\\intermediates\\packaged_res\\debug\\values\\values.xml",
+                    "source": "C:\\proje son\\group4\\progressviewslib\\build\\intermediates\\packaged_res\\debug\\values\\values.xml",
                     "from": {
                         "startLines": "2,3,4,6,7,8,9,10,11,12,13,14,21",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4",

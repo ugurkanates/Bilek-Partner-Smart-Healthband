@@ -21,6 +21,8 @@ repositories {
 }
 dependencies {
     compile project(':progressviewslib')
+    compile 'me.aflak.libraries:bluetooth:1.2.4'
+    compile 'me.aflak.libraries:pulltorefresh:1.0'
     implementation 'com.android.support:design:27.1.1'
     implementation 'com.android.support:support-annotations:27.1.1'
     implementation 'com.akexorcist:bluetoothspp:1.0.0'

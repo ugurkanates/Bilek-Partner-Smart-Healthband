@@ -1,0 +1,26 @@
+[
+    {
+        "merged": "C:\\proje son\\group4\\HARLib\\build\\intermediates\\res\\merged\\androidTest\\debug\\raw\\head.arff",
+        "source": "C:\\proje son\\group4\\HARLib\\build\\intermediates\\packaged_res\\debug\\raw\\head.arff"
+    },
+    {
+        "merged": "C:\\proje son\\group4\\HARLib\\build\\intermediates\\res\\merged\\androidTest\\debug\\raw\\j48_new.model",
+        "source": "C:\\proje son\\group4\\HARLib\\build\\intermediates\\packaged_res\\debug\\raw\\j48_new.model"
+    },
+    {
+        "merged": "C:\\proje son\\group4\\HARLib\\build\\intermediates\\res\\merged\\androidTest\\debug\\raw\\attributeselected.model",
+        "source": "C:\\proje son\\group4\\HARLib\\build\\intermediates\\packaged_res\\debug\\raw\\attributeselected.model"
+    },
+    {
+        "merged": "C:\\proje son\\group4\\HARLib\\build\\intermediates\\res\\merged\\androidTest\\debug\\raw\\bayesnet.model",
+        "source": "C:\\proje son\\group4\\HARLib\\build\\intermediates\\packaged_res\\debug\\raw\\bayesnet.model"
+    },
+    {
+        "merged": "C:\\proje son\\group4\\HARLib\\build\\intermediates\\res\\merged\\androidTest\\debug\\raw\\j48.model",
+        "source": "C:\\proje son\\group4\\HARLib\\build\\intermediates\\packaged_res\\debug\\raw\\j48.model"
+    },
+    {
+        "merged": "C:\\proje son\\group4\\HARLib\\build\\intermediates\\res\\merged\\androidTest\\debug\\raw\\filteredclassifier.model",
+        "source": "C:\\proje son\\group4\\HARLib\\build\\intermediates\\packaged_res\\debug\\raw\\filteredclassifier.model"
+    }
+]

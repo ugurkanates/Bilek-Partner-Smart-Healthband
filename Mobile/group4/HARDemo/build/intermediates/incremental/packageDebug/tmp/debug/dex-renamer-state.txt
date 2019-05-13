@@ -1,0 +1,4 @@
+#Tue May 14 01:57:18 EET 2019
+base.0=C\:\\proje son\\group4\\HARDemo\\build\\intermediates\\transforms\\dexMerger\\debug\\0
+path.0=classes.dex
+renamed.0=classes.dex

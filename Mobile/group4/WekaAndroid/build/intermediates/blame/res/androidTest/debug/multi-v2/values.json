@@ -1,0 +1,36 @@
+{
+    "logs": [
+        {
+            "outputFile": "C:\\proje son\\group4\\WekaAndroid\\build\\intermediates\\incremental\\mergeDebugAndroidTestResources\\merged.dir\\values\\values.xml",
+            "map": [
+                {
+                    "source": "C:\\proje son\\group4\\WekaAndroid\\build\\intermediates\\packaged_res\\debug\\values\\values.xml",
+                    "from": {
+                        "startLines": "2,3,10",
+                        "startColumns": "4,4,4",
+                        "startOffsets": "55,104,395",
+                        "endLines": "2,9,12",
+                        "endColumns": "48,12,12",
+                        "endOffsets": "99,390,550"
+                    }
+                }
+            ]
+        },
+        {
+            "outputFile": "C:\\proje son\\group4\\WekaAndroid\\build\\intermediates\\res\\merged\\androidTest\\debug\\values\\values.xml",
+            "map": [
+                {
+                    "source": "C:\\proje son\\group4\\WekaAndroid\\build\\intermediates\\packaged_res\\debug\\values\\values.xml",
+                    "from": {
+                        "startLines": "2,3,10",
+                        "startColumns": "4,4,4",
+                        "startOffsets": "55,104,395",
+                        "endLines": "2,9,12",
+                        "endColumns": "48,12,12",
+                        "endOffsets": "99,390,550"
+                    }
+                }
+            ]
+        }
+    ]
+}
