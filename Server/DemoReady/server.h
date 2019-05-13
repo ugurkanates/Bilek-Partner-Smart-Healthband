@@ -12,6 +12,11 @@
 #include <vector>
 #include <fstream>
 #include <ctime>
+#include <csignal>
+#include <queue>
+#include <mutex>
+#include <condition_variable>
+#include <filesystem>
 #ifdef __linux__
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -39,7 +44,8 @@
 #define BUFFER_SIZE 256
 #define DATE_BUFFER_SIZE 25
 #define HANDSHAKE_BUFFER 1
-#define DATABASE_FILENAME "BilekPartner.csv"
+#define DEFAULT_FILENAME "BilekPartner.csv"
+#define DEBUG 1
 
 struct WristBandDataPackage {
 	float temp;
@@ -56,38 +62,44 @@ struct MobileDataPackage {
 
 class Server
 {
-	public:
-		Server();
-		void StartServer();
-		void CloseServer();
+public:
+	Server();
+	void StartServer();
+	void CloseServer();
 #ifdef _WIN32
-		std::string GetIPAddress();
+	std::string GetIPAddress();
 #endif		
-		void ListenClients();
-		static std::string GetDate();
+	void ListenClients();
+	static std::string GetDate();
 
-	private:
-		// OS dependent GetMessageFromClient functions
-		static void VerifyClient(int clientSocket);
-		static void AcceptClients(int serverSocket);
-		static void HandleWristband(int clientSocket);
-		static void HandleMobile(int clientSocket);
-		static void FirstLoad(int clientSocket);
-		static void UpdateServer(int clientSocket);
-		static void UpdateDataBase(int clientSocket, std::string updateDate);
+private:
+	// OS dependent GetMessageFromClient functions
+	static void VerifyClient(int clientSocket);
+	static void AcceptClients(int serverSocket);
+	static void HandleWristband(int clientSocket, std::string wristBuffer);
+	static void HandleMobile(int clientSocket);
+	static void FirstLoad(int clientSocket);
+	static void UpdateServer(int clientSocket);
+	static void UpdateDataBase(int clientSocket, std::string updateDate);
+	static void UpdateUser(std::string newFileName);
 
-		// OS dependent serverSockets
+	// OS dependent serverSockets
 #ifdef __linux__
-		 int serverSocket;
+	int serverSocket;
 #elif _WIN32
-		SOCKET serverSocket;
+	SOCKET serverSocket;
 #endif
-		std::string ip;
-		sockaddr_in serverAddress;
-		int clientLimit = 10;
-		static bool serverOn;
-		static std::vector<std::thread> clientThreads;
-		std::thread mamaThread;
+	std::string ip;
+	sockaddr_in serverAddress;
+	int clientLimit = 100;
+	std::thread mamaThread;
+
+	static bool serverOn;
+	static std::vector<std::thread> clientThreads;
+	static std::string fileName;
+	static std::queue<std::string> databasePackageQueue;
+	static std::mutex mut;
+
 };
 
 
