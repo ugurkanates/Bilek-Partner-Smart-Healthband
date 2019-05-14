@@ -230,7 +230,7 @@ void Server::VerifyClient(int clientSocket) {
 		if (bytesRead > ZERO) {
 			if (buffer[0] == 'B') {
 				//Bileklik baðlandý, gerekli fn'leri çaðýrýp verileri kaydetmeye baþla
-				std::cout << "\n~~ BilekPartner connected.\n\n";
+				std::cout << "~~ BilekPartner connected.\n\n";
 				if (DEBUG_DATA || DEBUG_BP) {
 					std::cout << "Recieved buffer -> " << buffer << std::endl;
 				}
@@ -239,7 +239,7 @@ void Server::VerifyClient(int clientSocket) {
 			}
 			else if (buffer[0] == 'M') {
 				// Mobil baðlandý, gerekli fn'leri çaðýrýp iletiþime baþla.
-				std::cout << "\n~~ MobileApp connected. User -> " << (buffer+2) << "\n\n";
+				std::cout << "\n~~ MobileApp connected. User -> " << (buffer + 2) << "\n\n";
 				UpdateUser((buffer + 2));
 				HandleMobile(clientSocket);
 				clientConnected = false;
@@ -257,7 +257,7 @@ void Server::VerifyClient(int clientSocket) {
 			clientConnected = false;
 		}
 	}
-	if(DEBUG_DATA) std::cerr << "---ClientThread finished its job.\n" << std::endl;
+	if (DEBUG_DATA) std::cerr << "---ClientThread finished its job.\n" << std::endl;
 
 #ifdef _WIN32
 	shutdown(clientSocket, SD_SEND);
@@ -267,14 +267,15 @@ void Server::VerifyClient(int clientSocket) {
 }
 
 void Server::HandleWristband(int clientSocket, std::string wristBuffer) {
-	char wristBandBuffer[BUFFER_SIZE + 1];
+	char wristBandBuffer[BP_PACK_SIZE + 1];
+	char tempBuff[BP_PACK_SIZE];
 	int bytesReadSent = 0;
 	std::fstream wristBandFile;
-	char* splitter;
+	char* splitter, *packageSplitter;
 	int counter = 0;
 	float pX = 0, pY = 0, pZ = 0, temp = 0, pulse = 0;
 
-	memset(wristBandBuffer, '\0', BUFFER_SIZE + 1);
+	memset(wristBandBuffer, '\0', BP_PACK_SIZE + 1);
 
 	//Send confirmation message
 	wristBandBuffer[0] = 'S';
@@ -286,68 +287,136 @@ void Server::HandleWristband(int clientSocket, std::string wristBuffer) {
 
 		//De-format message 
 		strcpy(wristBandBuffer, wristBuffer.c_str());
-		splitter = strtok(wristBandBuffer, "_");
+		if (!BP_MODE) { // Only 1 package will be read
+			splitter = strtok(wristBandBuffer, "_");
 
-		while (splitter != NULL) {
-			switch (counter) {
+			while (splitter != NULL) {
+				switch (counter) {
 
-			case 0: // pX
-				pX = atof(splitter);
-				break;
-			case 1: //pY
-				pY = atof(splitter);
-				break;
-			case 2:	//pZ
-				pZ = atof(splitter);
-				break;
-			case 3:	//Temp
-				temp = atof(splitter);
-				break;
-			case 4:	//Pulse
-				pulse = atof(splitter);
-				break;
-			default:
-				printf("Error on reading data from BilekPartner\n");
-				break;
+				case 0: // pX
+					pX = atof(splitter);
+					break;
+				case 1: //pY
+					pY = atof(splitter);
+					break;
+				case 2:	//pZ
+					pZ = atof(splitter);
+					break;
+				case 3:	//Temp
+					temp = atof(splitter);
+					break;
+				case 4:	//Pulse
+					pulse = atof(splitter);
+					break;
+				default:
+					printf("Error on reading data from BilekPartner\n");
+					break;
+				}
+				++counter;
+				splitter = strtok(NULL, "_");
 			}
-			++counter;
-			splitter = strtok(NULL, "_");
+
+			//Put package into the queue
+			sprintf(wristBandBuffer, "%s,%f,%f,%f,%f,%f\n\0", GetDate().c_str(), temp, pulse, pX, pY, pZ);
+			databasePackageQueue.push(wristBandBuffer);
+
+			if (DEBUG_DATA || DEBUG_BP) {
+				std::cout << "BilekPartner ->" << wristBandBuffer;
+			}
+
+			//Check Data lock & then print to file.
+
+			/******** START CRITICAL SECTION ********/
+			//if (DEBUG_ACTIVITY) std::cout << "#### BilekPartner Thread entering critical section" << std::endl;
+			std::unique_lock<std::mutex> lock(mut, std::defer_lock);
+			lock.lock();
+
+			wristBandFile.open(fileName, std::fstream::out | std::fstream::app);
+			strcpy(wristBandBuffer, (databasePackageQueue.front()).c_str());
+
+			databasePackageQueue.pop();
+			wristBandFile.write(wristBandBuffer, strlen(wristBandBuffer));
+			wristBandFile.flush();
+			wristBandFile.close();
+
+			//if (DEBUG_ACTIVITY) std::cout << "#### BilekPartner Thread exiting critical section" << std::endl;
+			lock.unlock();
+			//if (DEBUG_ACTIVITY) std::cout << "#### BilekPartner Thread exited critical section" << std::endl;
+
+			/******** END CRITICAL SECTION ********/
+
 		}
+		else { // 20 package at once will be read
+			
+			packageSplitter = strtok(wristBandBuffer, "\n");
 
-		//Put package into the queue
-		sprintf(wristBandBuffer, "%s,%f,%f,%f,%f,%f\n\0", GetDate().c_str(), temp, pulse, pX, pY, pZ);
-		databasePackageQueue.push(wristBandBuffer);
+			while (packageSplitter != NULL) {
+				splitter = strtok(packageSplitter, "_");
 
-		if (DEBUG_DATA ||DEBUG_BP) {
-			std::cout << "BilekPartner ->" << wristBandBuffer;
+				while (splitter != NULL) {
+					switch (counter) {
+
+					case 0: // pX
+						pX = atof(splitter);
+						break;
+					case 1: //pY
+						pY = atof(splitter);
+						break;
+					case 2:	//pZ
+						pZ = atof(splitter);
+						break;
+					case 3:	//Temp
+						temp = atof(splitter);
+						break;
+					case 4:	//Pulse
+						pulse = atof(splitter);
+						break;
+					default:
+						printf("Error on reading data from BilekPartner\n");
+						break;
+					}
+					++counter;
+					splitter = strtok(NULL, "_");
+				}
+
+				//Put package into the queue
+				sprintf(tempBuff, "%s,%f,%f,%f,%f,%f\n\0", GetDate().c_str(), temp, pulse, pX, pY, pZ);
+				databasePackageQueue.push(tempBuff);
+
+				if (DEBUG_DATA || DEBUG_BP) {
+					std::cout << "BilekPartner ->" << tempBuff;
+				}
+
+				//Check Data lock & then print to file.
+
+				/******** START CRITICAL SECTION ********/
+				//if (DEBUG_ACTIVITY) std::cout << "#### BilekPartner Thread entering critical section" << std::endl;
+				std::unique_lock<std::mutex> lock(mut, std::defer_lock);
+				lock.lock();
+
+				wristBandFile.open(fileName, std::fstream::out | std::fstream::app);
+				strcpy(tempBuff, (databasePackageQueue.front()).c_str());
+
+				databasePackageQueue.pop();
+				wristBandFile.write(tempBuff, strlen(tempBuff));
+				wristBandFile.flush();
+				wristBandFile.close();
+
+				//if (DEBUG_ACTIVITY) std::cout << "#### BilekPartner Thread exiting critical section" << std::endl;
+				lock.unlock();
+				//if (DEBUG_ACTIVITY) std::cout << "#### BilekPartner Thread exited critical section" << std::endl;
+
+				/******** END CRITICAL SECTION ********/
+
+				packageSplitter = strtok(NULL, "\n");
+			}
+			
+
+
+
 		}
-
-		//Check Data lock & then print to file.
-		
-		/******** START CRITICAL SECTION ********/
-		if (DEBUG_ACTIVITY) std::cout << "#### BilekPartner Thread entering critical section" << std::endl;
-		std::unique_lock<std::mutex> lock(mut, std::defer_lock);
-		lock.lock();
-
-		wristBandFile.open(fileName, std::fstream::out | std::fstream::app);
-		strcpy(wristBandBuffer, (databasePackageQueue.front()).c_str());
-
-		databasePackageQueue.pop();
-		wristBandFile.write(wristBandBuffer, strlen(wristBandBuffer));
-		wristBandFile.flush();
-
-		std::this_thread::sleep_for(std::chrono::milliseconds(10000));
-
-		wristBandFile.close();
-
-		if (DEBUG_ACTIVITY) std::cout << "#### BilekPartner Thread exiting critical section" << std::endl;
-		lock.unlock();
-		if (DEBUG_ACTIVITY) std::cout << "#### BilekPartner Thread exited critical section" << std::endl;
-
-		/******** END CRITICAL SECTION ********/
 
 		std::cout << "~~ BilekPartner Disconnected" << std::endl << std::endl;
-
 	}
 }
 
@@ -360,14 +429,14 @@ void Server::HandleMobile(int clientSocket) {
 	buffer[0] = 'S';
 	std::fstream wristbandFile;
 
-	strcpy(secondBuff, "S\0");
+	/*strcpy(secondBuff, "S\0");
 	//Send confirmation message
 	bytesReadSent = send(clientSocket, secondBuff, strlen(secondBuff), DEFAULT);
 	if (bytesReadSent <= ZERO) {
 		std::cerr << "\nFailed to sent ConfirmationMessage to MobileApp\n";
 
 	}
-	else { //Confirmation message sent without a problem. Do the job
+	else { *///Confirmation message sent without a problem. Do the job
 
 		while (serverOn && clientConnected) {
 			bytesReadSent = recv(clientSocket, buffer, BUFFER_SIZE, 0);
@@ -399,7 +468,7 @@ void Server::HandleMobile(int clientSocket) {
 				}
 			}
 		}
-	}
+	//}
 }
 
 void Server::FirstLoad(int clientSocket) {
@@ -408,7 +477,7 @@ void Server::FirstLoad(int clientSocket) {
 	if (DEBUG_ACTIVITY) std::cout << "#### Mobile Thread entered FirstLoad" << std::endl;
 
 	/**************** START CRIT SECTION *********************/
-	std::unique_lock<std::mutex> lock(mut,std::defer_lock);
+	std::unique_lock<std::mutex> lock(mut, std::defer_lock);
 	lock.lock();
 
 	// std::ifstream wristBandFile(fileName);
@@ -418,13 +487,13 @@ void Server::FirstLoad(int clientSocket) {
 
 
 	if (DEBUG_DATA) printf("Printing Database while sending it. Database name : %s\n\n", fileName.c_str());
-	
+
 
 	for (std::string line; std::getline(wristBandFile, line); ) {
 
 		line += "\n";
 		if (DEBUG_DATA)	std::cout << line.c_str();
-		
+
 
 		bytesSend = send(clientSocket, line.c_str(), BUFFER_SIZE, DEFAULT);
 		if (bytesSend <= 0) {
@@ -433,7 +502,7 @@ void Server::FirstLoad(int clientSocket) {
 	}
 	wristBandFile.close();
 
-	lock.unlock();	
+	lock.unlock();
 	/**************** END CRIT SECTION *********************/
 
 	send(clientSocket, "FL FIN", BUFFER_SIZE, DEFAULT);
@@ -448,7 +517,6 @@ void Server::UpdateServer(int clientSocket) {
 	bool finished = false;
 	char buffer[BUFFER_SIZE];
 	char* buff2;
-	MobileDataPackage mobDataPack;
 	std::fstream wristBandFile;
 	int  count = 0;
 	std::string fin("US FIN");
@@ -462,7 +530,7 @@ void Server::UpdateServer(int clientSocket) {
 	wristBandFile.open(fileName, std::fstream::out | std::fstream::app);
 
 	if (DEBUG_DATA) printf("Printing all the information recieved\n\n");
-	
+
 	while (!finished) {
 		bytesReadSent = recv(clientSocket, buffer, BUFFER_SIZE, DEFAULT);
 		if (bytesReadSent <= ERROR) {
@@ -477,7 +545,7 @@ void Server::UpdateServer(int clientSocket) {
 
 				// Write MobDataPack into server.
 				if (DEBUG_DATA) std::cout << "UpdateServer ->" << buffer;
-				
+
 				wristBandFile.write(buffer, strlen(buffer));
 				wristBandFile.flush();
 			}
@@ -499,11 +567,11 @@ void Server::UpdateDataBase(int clientSocket, std::string updateDate) {
 	int res;
 	bool found = false;
 
-	sscanf(updateDate.c_str(), "UD %s %s %s %2s:%2s:%2s", year, month, day, hour, min, sec);
+	sscanf(updateDate.c_str(), "UD %4s-%2s-%2s %2s:%2s:%2s", year, month, day, hour, min, sec);
 	sprintf(date1, "%s%s%s%s%s%s", year, month, day, hour, min, sec);
 
 	if (DEBUG_ACTIVITY) printf("#### Mobile Thread entered UpdateDataBase, requested date %s %s %s %s:%s:%s\n", year, month, day, hour, min, sec);
-	
+
 	/**************** START CRIT SECTION *********************/
 	std::unique_lock<std::mutex> lock(mut, std::defer_lock);
 	lock.lock();
@@ -523,7 +591,7 @@ void Server::UpdateDataBase(int clientSocket, std::string updateDate) {
 			if (DEBUG_DATA) printf("UpdateDatabase -> %s", line.c_str());
 		}
 		else {
-			sscanf(line.c_str(), "%s %s %s %2s:%2s:%2s", s_year, s_month, s_day, s_hour, s_min, s_sec);
+			sscanf(line.c_str(), "%4s-%2s-%2s %2s:%2s:%2s", s_year, s_month, s_day, s_hour, s_min, s_sec);
 			sprintf(date2, "%s%s%s%s%s%s", s_year, s_month, s_day, s_hour, s_min, s_sec);
 			res = strcmp(date1, date2);
 			if (res == -1) found = true;
@@ -542,36 +610,39 @@ void Server::UpdateUser(std::string newFileName) {
 	bool condCheck = false;
 	std::fstream source;
 	std::fstream dest;
-
+	char temp[BUFFER_SIZE];
+	
 	if (DEBUG_ACTIVITY) std::cout << "#### Mobile Thread entered UpdateUser" << std::endl;
 	if (DEBUG_DATA) std::cout << "Update User called with the user name -> " << newFileName << std::endl;
 
-	/**************** START CRIT SECTION *********************/
+	sscanf(newFileName.c_str(), "%s\n", temp);
 	
+	/**************** START CRIT SECTION *********************/
 	std::unique_lock<std::mutex> lock(mut, std::defer_lock);
 	lock.lock();
 
+	newFileName = temp;
 	newFileName += ".csv";
-
 	fileName = newFileName;
-	if (std::filesystem::exists(DEFAULT_FILENAME) && !std::filesystem::exists(fileName)) { // File does not exits and defaultStorage file exists.
 
+	if (std::filesystem::exists(DEFAULT_FILENAME) && !std::filesystem::exists(fileName)) { // File does not exits and defaultStorage file exists.
 
 		source.open(DEFAULT_FILENAME, std::fstream::in);
 		dest.open(fileName, std::fstream::out);
 
-		if(DEBUG_DATA) std::cout << "FILE SWAP" << std::endl;
-		
+		if (DEBUG_DATA) std::cout << "FILE SWAP" << std::endl;
+
 		std::istreambuf_iterator<char> begin_source(source);
 		std::istreambuf_iterator<char> end_source;
 		std::ostreambuf_iterator<char> begin_dest(dest);
 		copy(begin_source, end_source, begin_dest);
 
 		source.close();
-		dest.close();	
+		dest.close();
 		remove(DEFAULT_FILENAME);
 	}
 
+	std::cout << "FileSwap FIN" << std::endl;
 	lock.unlock();
 	/**************** END CRIT SECTION *********************/
 	if (DEBUG_ACTIVITY) std::cout << "#### Mobile Thread finished UpdateUser" << std::endl;
@@ -613,13 +684,13 @@ std::string Server::GetDate() {
 	ti = localtime(&tt);
 
 	//YEAR
-	date = std::to_string(1900 + ti->tm_year) + " ";
+	date = std::to_string(1900 + ti->tm_year) + "-";
 	//Month
 	if (ti->tm_mon + 1 < 10) {
-		date += "0" + std::to_string(ti->tm_mon + 1) + " ";
+		date += "0" + std::to_string(ti->tm_mon + 1) + "-";
 	}
 	else {
-		date += std::to_string(ti->tm_mon + 1) + " ";
+		date += std::to_string(ti->tm_mon + 1) + "-";
 	}
 	//Day
 	if (ti->tm_mday < 10) {

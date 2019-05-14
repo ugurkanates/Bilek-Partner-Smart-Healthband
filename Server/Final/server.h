@@ -44,14 +44,16 @@
 #define WS_VERSION 0x0202
 #define SERVER_PORT 1379  // Serverýn Public olarak çalýþmasý için, modeminizden program çalýþtýrýldýðý zaman yazan IP'ye bu PORT'u Forwardlamanýz gerekmektedir. 
 #define BUFFER_SIZE 256
+#define BP_PACK_SIZE 1280
 #define DATE_BUFFER_SIZE 25
 #define HANDSHAKE_BUFFER 1
 #define DEFAULT_FILENAME "BilekPartner.csv"
+#define BP_MODE 0 // 0 ->Data tekli gelecek  |  1-> Data 20li olarak gelecek
 #define DEBUG_DATA 1
-#define DEBUG_ACTIVITY 0
+#define DEBUG_ACTIVITY 1
 #define DEBUG_BP 1 //Debug for BilekPartner
 
-
+/*
 struct WristBandDataPackage {
 	float temp;
 	float pulse;
@@ -64,6 +66,7 @@ struct MobileDataPackage {
 	char date[DATE_BUFFER_SIZE];
 	WristBandDataPackage wbData;
 };
+*/
 
 class Server
 {
