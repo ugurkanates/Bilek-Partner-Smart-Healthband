@@ -1,10 +1,12 @@
 package com.example.akin.bilekpartner;
 
+import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
@@ -26,6 +28,8 @@ import me.aflak.bluetooth.Bluetooth;
 public class Chat extends AppCompatActivity implements Bluetooth.CommunicationCallback {
     private String name;
     private Bluetooth b;
+    private TextView text;
+    private ScrollView scrollView;
     private boolean registered=false;
 
     @Override
@@ -36,7 +40,10 @@ public class Chat extends AppCompatActivity implements Bluetooth.CommunicationCa
         b.enableBluetooth();
 
         b.setCommunicationCallback(this);
+        text = (TextView)findViewById(R.id.text);
+        scrollView = (ScrollView) findViewById(R.id.scrollView);
 
+        text.setMovementMethod(new ScrollingMovementMethod());
         int pos = getIntent().getExtras().getInt("pos");
         name = b.getPairedDevices().get(pos).getName();
 
@@ -62,8 +69,8 @@ public class Chat extends AppCompatActivity implements Bluetooth.CommunicationCa
         this.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-               /* text.append(s + "\n");
-                scrollView.fullScroll(View.FOCUS_DOWN);*/
+                text.append(s + "\n");
+                scrollView.fullScroll(View.FOCUS_DOWN);
             }
         });
     }
@@ -149,4 +156,9 @@ public class Chat extends AppCompatActivity implements Bluetooth.CommunicationCa
             }
         }
     };
+    public void onBackPressed() {
+        Intent intent4 = new Intent(Chat.this, Settings.class);
+        startActivity(intent4);
+        finish();
+    }
 }
