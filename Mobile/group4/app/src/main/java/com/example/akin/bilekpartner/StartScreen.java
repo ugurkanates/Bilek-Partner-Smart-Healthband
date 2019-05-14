@@ -16,7 +16,7 @@ public class StartScreen extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        startActivity(new Intent(StartScreen.this, SplashActivity.class));
+        startActivity(new Intent(StartScreen.this, Select.class));
         finish();
     }
 }

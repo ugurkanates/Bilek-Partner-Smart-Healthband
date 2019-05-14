@@ -48,7 +48,7 @@ public class Scan extends Activity implements Bluetooth.DiscoveryCallback, Adapt
 
         bluetooth.scanDevices();
         progress.setVisibility(View.VISIBLE);
-        state.setText("Aranıyor...");
+        state.setText("Scanning...");
         listView.setEnabled(false);
 
         scan.setEnabled(false);
@@ -67,7 +67,7 @@ public class Scan extends Activity implements Bluetooth.DiscoveryCallback, Adapt
 
                 devices = new ArrayList<>();
                 progress.setVisibility(View.VISIBLE);
-                state.setText("Aranıyor...");
+                state.setText("Scanning...");
                 bluetooth.scanDevices();
             }
         });
@@ -94,7 +94,7 @@ public class Scan extends Activity implements Bluetooth.DiscoveryCallback, Adapt
     @Override
     public void onFinish() {
         setProgressVisibility(View.INVISIBLE);
-        setText("Tarama Bitti!");
+        setText("Scan finished!");
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -135,7 +135,7 @@ public class Scan extends Activity implements Bluetooth.DiscoveryCallback, Adapt
     @Override
     public void onError(String message) {
         setProgressVisibility(View.INVISIBLE);
-        setText("Hata: "+message);
+        setText("Error: "+message);
     }
 
     @Override

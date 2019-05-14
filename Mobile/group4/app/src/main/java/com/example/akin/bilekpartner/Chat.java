@@ -25,9 +25,34 @@ import android.widget.TextView;
 
 import me.aflak.bluetooth.Bluetooth;
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.content.ActivityNotFoundException;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.Uri;
+import android.os.Bundle;
+import android.os.Handler;
+import android.support.v7.app.AppCompatActivity;
+import android.text.method.ScrollingMovementMethod;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ScrollView;
+import android.widget.TextView;
+
+import me.aflak.bluetooth.Bluetooth;
+
 public class Chat extends AppCompatActivity implements Bluetooth.CommunicationCallback {
     private String name;
     private Bluetooth b;
+    private EditText message;
+    private Button send;
     private TextView text;
     private ScrollView scrollView;
     private boolean registered=false;
@@ -36,20 +61,38 @@ public class Chat extends AppCompatActivity implements Bluetooth.CommunicationCa
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main1);
+
+        text = (TextView)findViewById(R.id.text);
+        message = (EditText)findViewById(R.id.message);
+        message.setVisibility(View.INVISIBLE);
+
+        send = (Button)findViewById(R.id.send);
+        send.setVisibility(View.INVISIBLE);
+        scrollView = (ScrollView) findViewById(R.id.scrollView);
+
+        text.setMovementMethod(new ScrollingMovementMethod());
+        send.setEnabled(false);
+
         b = new Bluetooth(this);
         b.enableBluetooth();
 
         b.setCommunicationCallback(this);
-        text = (TextView)findViewById(R.id.text);
-        scrollView = (ScrollView) findViewById(R.id.scrollView);
 
-        text.setMovementMethod(new ScrollingMovementMethod());
         int pos = getIntent().getExtras().getInt("pos");
         name = b.getPairedDevices().get(pos).getName();
 
-        Display("Bağlanıyor...");
+        Display("Connecting...");
         b.connectToDevice(b.getPairedDevices().get(pos));
 
+        send.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String msg = message.getText().toString();
+                message.setText("");
+                b.send(msg);
+                Display("You: "+msg);
+            }
+        });
 
         IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
         registerReceiver(mReceiver, filter);
@@ -64,7 +107,6 @@ public class Chat extends AppCompatActivity implements Bluetooth.CommunicationCa
             registered=false;
         }
     }
-
     public void Display(final String s){
         this.runOnUiThread(new Runnable() {
             @Override
@@ -81,36 +123,32 @@ public class Chat extends AppCompatActivity implements Bluetooth.CommunicationCa
         this.runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                send.setEnabled(true);
             }
         });
     }
 
     @Override
     public void onDisconnect(BluetoothDevice device, String message) {
-        Display("Bağlantı Koptu!");
-        Display("Tekrar Bağlanılıyor...");
+        Display("Disconnected!");
+        Display("Connecting again...");
         b.connectToDevice(device);
     }
 
     @Override
     public void onMessage(String message) {
         Display(name+": "+message);
-        String[] parts = message.split("_");
-        //gelen data x,y,z,pulse,temp
-        String[] data= {parts[1],parts[2],parts[3],parts[4],parts[5]};
     }
 
     @Override
     public void onError(String message) {
-        Display("Hata: "+message);
-
-
+        Display("Error: "+message);
     }
 
     @Override
     public void onConnectError(final BluetoothDevice device, String message) {
-        Display("Hata: "+"Time Out");
-        Display("3 saniye içinde tekrar deneyin.");
+        Display("Error: "+message);
+        Display("Trying again in 3 sec.");
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -122,7 +160,6 @@ public class Chat extends AppCompatActivity implements Bluetooth.CommunicationCa
                     }
                 }, 2000);
             }
-
         });
     }
 
@@ -157,7 +194,7 @@ public class Chat extends AppCompatActivity implements Bluetooth.CommunicationCa
         }
     };
     public void onBackPressed() {
-        Intent intent4 = new Intent(Chat.this, Settings.class);
+        Intent intent4 = new Intent(Chat.this, Select.class);
         startActivity(intent4);
         finish();
     }
