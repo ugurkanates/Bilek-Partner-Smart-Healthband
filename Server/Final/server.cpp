@@ -379,6 +379,8 @@ void Server::HandleWristband(int clientSocket, std::string wristBuffer) {
 					splitter = strtok(NULL, "_");
 				}
 
+				counter = 0;
+
 				//Put package into the queue
 				sprintf(tempBuff, "%s,%f,%f,%f,%f,%f\n\0", GetDate().c_str(), temp, pulse, pX, pY, pZ);
 				databasePackageQueue.push(tempBuff);
