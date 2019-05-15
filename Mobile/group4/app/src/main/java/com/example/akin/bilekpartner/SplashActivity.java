@@ -40,10 +40,10 @@ public class SplashActivity extends AppCompatActivity {
         app_name.setTypeface(mTfRegular);
         app_name.startAnimation(AnimationUtils.loadAnimation(SplashActivity.this,R.anim.right_in));
 
-        b = new Bluetooth(this);
+     /*   b = new Bluetooth(this);
         b.enableBluetooth();
         int pos = 0;
-        b.connectToDevice(b.getPairedDevices().get(pos));
+        b.connectToDevice(b.getPairedDevices().get(pos));*/
 
 
         Button bt=findViewById(R.id.strt);
