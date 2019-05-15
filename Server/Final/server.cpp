@@ -7,6 +7,7 @@ std::string Server::fileName = std::string(DEFAULT_FILENAME);
 std::queue<std::string> Server::databasePackageQueue;
 std::mutex Server::mut;
 std::condition_variable Server::condV;
+char Server::lastPackage[BUFFER_SIZE];
 
 Server::Server() {
 }
@@ -220,13 +221,13 @@ void Server::AcceptClients(int serverSocket) {
 
 void Server::VerifyClient(int clientSocket) {
 
-	char buffer[BUFFER_SIZE];
+	char buffer[BP_PACK_SIZE];
 	int bytesRead;
 	bool clientConnected = true;
 
-	memset(buffer, '\0', BUFFER_SIZE);
+	memset(buffer, '\0', BP_PACK_SIZE);
 	while (serverOn && clientConnected) {
-		bytesRead = recv(clientSocket, buffer, BUFFER_SIZE - 1, DEFAULT);
+		bytesRead = recv(clientSocket, buffer, BP_PACK_SIZE, DEFAULT);
 		if (bytesRead > ZERO) {
 			if (buffer[0] == 'B') {
 				//Bileklik baðlandý, gerekli fn'leri çaðýrýp verileri kaydetmeye baþla
@@ -234,7 +235,7 @@ void Server::VerifyClient(int clientSocket) {
 				if (DEBUG_DATA || DEBUG_BP) {
 					std::cout << "Recieved buffer -> " << buffer << std::endl;
 				}
-				HandleWristband(clientSocket, buffer + 2);
+				HandleWristband(clientSocket, buffer );
 				clientConnected = false;
 			}
 			else if (buffer[0] == 'M') {
@@ -271,9 +272,10 @@ void Server::HandleWristband(int clientSocket, std::string wristBuffer) {
 	char tempBuff[BP_PACK_SIZE];
 	int bytesReadSent = 0;
 	std::fstream wristBandFile;
-	char* splitter, *packageSplitter;
+	char* splitter, *packageSplitter, *strtok_save1, *strtok_save2;
 	int counter = 0;
 	float pX = 0, pY = 0, pZ = 0, temp = 0, pulse = 0;
+	int battery;
 
 	memset(wristBandBuffer, '\0', BP_PACK_SIZE + 1);
 
@@ -288,6 +290,7 @@ void Server::HandleWristband(int clientSocket, std::string wristBuffer) {
 		//De-format message 
 		strcpy(wristBandBuffer, wristBuffer.c_str());
 		if (!BP_MODE) { // Only 1 package will be read
+			strcpy(wristBandBuffer, wristBandBuffer + 2);
 			splitter = strtok(wristBandBuffer, "_");
 
 			while (splitter != NULL) {
@@ -307,6 +310,9 @@ void Server::HandleWristband(int clientSocket, std::string wristBuffer) {
 					break;
 				case 4:	//Pulse
 					pulse = atof(splitter);
+					break;
+				case 5:
+					battery = atoi(splitter);
 					break;
 				default:
 					printf("Error on reading data from BilekPartner\n");
@@ -333,6 +339,10 @@ void Server::HandleWristband(int clientSocket, std::string wristBuffer) {
 
 			wristBandFile.open(fileName, std::fstream::out | std::fstream::app);
 			strcpy(wristBandBuffer, (databasePackageQueue.front()).c_str());
+			
+			memset(lastPackage, '\0', BUFFER_SIZE);
+			strcpy(lastPackage, wristBandBuffer);
+
 
 			databasePackageQueue.pop();
 			wristBandFile.write(wristBandBuffer, strlen(wristBandBuffer));
@@ -345,13 +355,15 @@ void Server::HandleWristband(int clientSocket, std::string wristBuffer) {
 
 			/******** END CRITICAL SECTION ********/
 
-		}
-		else { // 20 package at once will be read
+		} else { // Multiple packages at once will be read
 			
-			packageSplitter = strtok(wristBandBuffer, "\n");
+			packageSplitter = strtok_s(wristBandBuffer, "\n", &strtok_save1);
+
+			std::cout << "PackageSplitter -> " << packageSplitter << std::endl;
+			strcpy(packageSplitter, packageSplitter + 2);
 
 			while (packageSplitter != NULL) {
-				splitter = strtok(packageSplitter, "_");
+				splitter = strtok_s(packageSplitter, "_", &strtok_save2);
 
 				while (splitter != NULL) {
 					switch (counter) {
@@ -371,12 +383,18 @@ void Server::HandleWristband(int clientSocket, std::string wristBuffer) {
 					case 4:	//Pulse
 						pulse = atof(splitter);
 						break;
+					case 5:	//Battery
+						battery = atoi(splitter);
+						break;
+					case 6: // Nothing
+						break;
 					default:
 						printf("Error on reading data from BilekPartner\n");
+						printf("Error Buffer -> %s - %d\n", splitter, counter);
 						break;
 					}
 					++counter;
-					splitter = strtok(NULL, "_");
+					splitter = strtok_s(NULL, "_", &strtok_save2);
 				}
 
 				counter = 0;
@@ -399,6 +417,9 @@ void Server::HandleWristband(int clientSocket, std::string wristBuffer) {
 				wristBandFile.open(fileName, std::fstream::out | std::fstream::app);
 				strcpy(tempBuff, (databasePackageQueue.front()).c_str());
 
+				if (DEBUG_DATA || DEBUG_BP) std::cout << "BP TO FILE -> " << tempBuff << std::endl;
+
+
 				databasePackageQueue.pop();
 				wristBandFile.write(tempBuff, strlen(tempBuff));
 				wristBandFile.flush();
@@ -410,12 +431,12 @@ void Server::HandleWristband(int clientSocket, std::string wristBuffer) {
 
 				/******** END CRITICAL SECTION ********/
 
-				packageSplitter = strtok(NULL, "\n");
+				packageSplitter = strtok_s(NULL, "\n", &strtok_save1);
+				if (packageSplitter != NULL) {
+					strcpy(packageSplitter, packageSplitter + 2);
+				}
 			}
 			
-
-
-
 		}
 
 		std::cout << "~~ BilekPartner Disconnected" << std::endl << std::endl;
@@ -451,6 +472,7 @@ void Server::HandleMobile(int clientSocket) {
 			// "UD" -> "UpdateDataBase", takes a date and sends all the packages recieved after the given date to mobileApp
 			// "US" -> "UpdateServer", takes packages from mobileApp to UpdateServer
 			// "UU *UserName*" -> "UpdateUser", takes an user name and updates server's database accordingly.
+			// "GL" -> "GetLastPackage", send last package written to database to mobileApp
 			else {
 				if (DEBUG_DATA) std::cout << "Mobile command " << buffer << std::endl;
 				if (buffer[0] == 'F' && buffer[1] == 'L') {
@@ -648,6 +670,21 @@ void Server::UpdateUser(std::string newFileName) {
 	lock.unlock();
 	/**************** END CRIT SECTION *********************/
 	if (DEBUG_ACTIVITY) std::cout << "#### Mobile Thread finished UpdateUser" << std::endl;
+}
+
+void Server::GetLastPackage(int clientSocket){
+
+	int bytesSent = 0;
+
+	if (DEBUG_ACTIVITY) std::cout << "#### Mobile Thread entered GetLastPackage";
+	if (DEBUG_DATA) std::cout << "LastPackage -> " << lastPackage << std::endl;
+
+	bytesSent = send(clientSocket, lastPackage, sizeof(lastPackage), DEFAULT);
+	if (bytesSent <= 0) {
+		std::cout << "Error sending Last Package to mobile app." << std::endl;;
+	}
+
+	if (DEBUG_ACTIVITY) std::cout << "#### Mobile Thread finished GetLastPackage" << std::endl;
 }
 
 #ifdef _WIN32

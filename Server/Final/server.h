@@ -5,6 +5,8 @@
 #include <string>
 #include <cstring>
 #include <thread>
+#include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <fstream>
@@ -48,9 +50,10 @@
 #define DATE_BUFFER_SIZE 25
 #define HANDSHAKE_BUFFER 1
 #define DEFAULT_FILENAME "BilekPartner.csv"
-#define BP_MODE 0 // 0 ->Data tekli gelecek  |  1-> Data 20li olarak gelecek
-#define DEBUG_DATA 1
-#define DEBUG_ACTIVITY 1
+
+#define BP_MODE 1 // 0 ->Data tekli gelecek  |  1-> Data çoklu olarak gelecek
+#define DEBUG_DATA 0
+#define DEBUG_ACTIVITY 0
 #define DEBUG_BP 1 //Debug for BilekPartner
 
 /*
@@ -90,6 +93,7 @@ private:
 	static void UpdateServer(int clientSocket);
 	static void UpdateDataBase(int clientSocket, std::string updateDate);
 	static void UpdateUser(std::string newFileName);
+	static void GetLastPackage(int clientSocket);
 
 	// OS dependent serverSockets
 #ifdef __linux__
@@ -108,6 +112,7 @@ private:
 	static std::queue<std::string> databasePackageQueue;
 	static std::mutex mut;
 	static std::condition_variable condV;
+	static char lastPackage[BUFFER_SIZE];
 };
 
 
