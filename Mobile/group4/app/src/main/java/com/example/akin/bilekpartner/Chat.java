@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.text.method.ScrollingMovementMethod;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -50,7 +51,7 @@ import me.aflak.bluetooth.Bluetooth;
 
 public class Chat extends AppCompatActivity implements Bluetooth.CommunicationCallback {
     private String name;
-    private Bluetooth b;
+
     private EditText message;
     private Button send;
     private TextView text;
@@ -61,7 +62,6 @@ public class Chat extends AppCompatActivity implements Bluetooth.CommunicationCa
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main1);
-
         text = (TextView)findViewById(R.id.text);
         message = (EditText)findViewById(R.id.message);
         message.setVisibility(View.INVISIBLE);
@@ -73,26 +73,7 @@ public class Chat extends AppCompatActivity implements Bluetooth.CommunicationCa
         text.setMovementMethod(new ScrollingMovementMethod());
         send.setEnabled(false);
 
-        b = new Bluetooth(this);
-        b.enableBluetooth();
-
-        b.setCommunicationCallback(this);
-
-        int pos = getIntent().getExtras().getInt("pos");
-        name = b.getPairedDevices().get(pos).getName();
-
-        Display("Connecting...");
-        b.connectToDevice(b.getPairedDevices().get(pos));
-
-        send.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String msg = message.getText().toString();
-                message.setText("");
-                b.send(msg);
-                Display("You: "+msg);
-            }
-        });
+        SplashActivity.b.setCommunicationCallback(this);
 
         IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
         registerReceiver(mReceiver, filter);
@@ -132,12 +113,14 @@ public class Chat extends AppCompatActivity implements Bluetooth.CommunicationCa
     public void onDisconnect(BluetoothDevice device, String message) {
         Display("Disconnected!");
         Display("Connecting again...");
-        b.connectToDevice(device);
+        SplashActivity.b.connectToDevice(device);
     }
 
     @Override
     public void onMessage(String message) {
-        Display(name+": "+message);
+        if(message.length()>0&&message.substring(0,1).equals("B")&&message.substring(1,2).equals("_")) {
+            Display(message);
+        }
     }
 
     @Override
@@ -156,7 +139,7 @@ public class Chat extends AppCompatActivity implements Bluetooth.CommunicationCa
                 handler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        b.connectToDevice(device);
+                        SplashActivity.b.connectToDevice(device);
                     }
                 }, 2000);
             }
@@ -194,7 +177,7 @@ public class Chat extends AppCompatActivity implements Bluetooth.CommunicationCa
         }
     };
     public void onBackPressed() {
-        Intent intent4 = new Intent(Chat.this, Select.class);
+        Intent intent4 = new Intent(Chat.this, InstantStateActivity.class);
         startActivity(intent4);
         finish();
     }

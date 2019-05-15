@@ -114,26 +114,6 @@
                     android:textColor="@color/white"
                     android:textSize="@dimen/text_20" />
 
-                <Button
-                    android:id="@+id/new_app"
-                    style="@style/Font_family_regular"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="@dimen/margin_bottom_8"
-                    android:layout_marginLeft="@dimen/margin_left_16"
-                    android:layout_marginRight="@dimen/margin_right_16"
-                    android:layout_marginTop="@dimen/margin_top_8"
-                    android:layout_weight="1"
-                    android:background="@drawable/yellow_style"
-                    android:elevation="0dp"
-                    android:fontFamily="sans-serif-regular"
-                    android:gravity="center"
-                    android:paddingBottom="@dimen/padding_16"
-                    android:paddingTop="@dimen/padding_16"
-                    android:text="Diğer Uygulama"
-                    android:textColor="@color/white"
-                    android:textSize="@dimen/text_20" />
-
             </LinearLayout>
 
         </ScrollView>

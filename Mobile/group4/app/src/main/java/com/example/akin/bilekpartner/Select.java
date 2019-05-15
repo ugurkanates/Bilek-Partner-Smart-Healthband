@@ -52,19 +52,14 @@ public class Select extends Activity implements PullToRefresh.OnRefreshListener 
         pull_to_refresh.setOnRefreshListener(this);
         pull_to_refresh.setSlide(500);
 
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent i = new Intent(Select.this, Chat.class);
-                i.putExtra("pos", position);
-                if(registered) {
-                    unregisterReceiver(mReceiver);
-                    registered=false;
-                }
-                startActivity(i);
-                finish();
-            }
-        });
+        Intent i = new Intent(Select.this, Chat.class);
+        i.putExtra("pos", 0);
+        if(registered) {
+            unregisterReceiver(mReceiver);
+            registered=false;
+        }
+        startActivity(i);
+        finish();
 
         not_found.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -128,7 +123,6 @@ public class Select extends Activity implements PullToRefresh.OnRefreshListener 
         @Override
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
-
             if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
                 final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
 

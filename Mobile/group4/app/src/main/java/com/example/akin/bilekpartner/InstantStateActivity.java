@@ -31,6 +31,7 @@ public class InstantStateActivity extends AppCompatActivity {
         setContentView(R.layout.activity_instant_state);
         bottomNavigate();
     }
+
     public void bottomNavigate(){
         BottomNavigationView bottomNavigationView = (BottomNavigationView) findViewById(R.id.bottom_navigation);
         bottomNavigationView.setOnNavigationItemSelectedListener(

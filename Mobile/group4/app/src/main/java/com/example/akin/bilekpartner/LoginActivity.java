@@ -20,6 +20,7 @@ import static android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK;
 
 public class LoginActivity extends AppCompatActivity {
     Button btn_login, btn_logout,other_app;
+    static int Bt=0;
     EditText editTextEmail;
     EditText editTextPassword;
     DataBaseHelper db;
@@ -34,16 +35,6 @@ public class LoginActivity extends AppCompatActivity {
         editTextPassword = (EditText) findViewById(R.id.input_password);
         db=new DataBaseHelper(this);
         Button login = findViewById(R.id.btn_login);
-        other_app=findViewById(R.id.new_app);
-        other_app.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.rockcode.har.demo");
-                if (launchIntent != null) {
-                    startActivity(launchIntent);//null pointer check in case package name was not found
-                }
-            }
-        });
         login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
