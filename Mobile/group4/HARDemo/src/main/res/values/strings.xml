@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">HAR</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_start">Start</string>
+    <string name="action_test">Test</string>
+    <string name="action_refresh">Refresh</string>
+    <string name="action_collect_mode">Collect Mode</string>
+    <string name="action_classify_mode">Classify Mode</string>
+    <string name="action_clear">Clear</string>
+	<string name="action_show_history_data">History</string>
+    <string name="title_activity_main">HAR</string>
+    <string name="title_section1_data">DATA</string>
+    <string name="title_section2_map">MAP</string>
+    <string name="button_start_time">Start Time</string>
+    <string name="button_finish_time">Finish Time</string>
+    <string name="textview_all_data_num">Result Count: </string>
+    <string name="textview_activity_data_num">Activity Count: </string>
+    <string name="textview_activity_info">Static</string>
+    <string name="title_activity_har_data_collect">HarDataCollect</string>
+ 	<string name ="notification_title">HAR</string>
+    <string name ="notification_text">HAR Running</string>
+    <string name ="hint_har_stop">Stop HAR</string>
+    <string name ="hint_har_start">Start HAR\nPlease put phone to your left trousers pocket !</string>
+    <string name ="hint_stop_har_first">Please Stop HAR first !</string>
+    <string name ="alert_dialog_message_open_gps">Need Enable GPS Location</string>
+    <string name ="alert_dialog_title_open_gps">Enable GPS Location</string>
+    <string name ="alert_dialog_postive">Yes</string>
+    <string name ="alert_dialog_negative">No</string>
+    <string name ="dialog_result_details_title">HAR Recognition Result Details</string>
+    <string name ="dialog_postive">OK</string>
+    <string name ="dialog_negative">Cancel</string>
+
+</resources>

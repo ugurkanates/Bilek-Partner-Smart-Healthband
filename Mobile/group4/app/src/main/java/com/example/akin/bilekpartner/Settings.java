@@ -23,7 +23,7 @@ public class Settings extends AppCompatActivity {
         bluetooth.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(Settings.this, BluetoothActivity.class);
+                Intent intent = new Intent(Settings.this, Select.class);
                 startActivity(intent);
                 finish();
             }

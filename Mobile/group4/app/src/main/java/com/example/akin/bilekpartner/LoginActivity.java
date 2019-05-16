@@ -19,7 +19,8 @@ import java.util.regex.Pattern;
 import static android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK;
 
 public class LoginActivity extends AppCompatActivity {
-    Button btn_login, btn_logout;
+    Button btn_login, btn_logout,other_app;
+    static int Bt=0;
     EditText editTextEmail;
     EditText editTextPassword;
     DataBaseHelper db;

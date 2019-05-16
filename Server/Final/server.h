@@ -5,6 +5,8 @@
 #include <string>
 #include <cstring>
 #include <thread>
+#include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <fstream>
@@ -44,14 +46,18 @@
 #define WS_VERSION 0x0202
 #define SERVER_PORT 1379  // Serverýn Public olarak çalýþmasý için, modeminizden program çalýþtýrýldýðý zaman yazan IP'ye bu PORT'u Forwardlamanýz gerekmektedir. 
 #define BUFFER_SIZE 256
+#define BP_PACK_SIZE 1280
 #define DATE_BUFFER_SIZE 25
 #define HANDSHAKE_BUFFER 1
 #define DEFAULT_FILENAME "BilekPartner.csv"
-#define DEBUG_DATA 1
-#define DEBUG_ACTIVITY 0
+#define LOG_FILENAME "serverlog.txt"
+
+#define BP_MODE 1 // 0 ->Data tekli gelecek  |  1-> Data çoklu olarak gelecek
+#define DEBUG_DATA 0 // Shows all data recieved & sent
+#define DEBUG_ACTIVITY 1 // Shows connections. Similiart to log file
 #define DEBUG_BP 1 //Debug for BilekPartner
 
-
+/*
 struct WristBandDataPackage {
 	float temp;
 	float pulse;
@@ -64,6 +70,7 @@ struct MobileDataPackage {
 	char date[DATE_BUFFER_SIZE];
 	WristBandDataPackage wbData;
 };
+*/
 
 class Server
 {
@@ -87,6 +94,9 @@ private:
 	static void UpdateServer(int clientSocket);
 	static void UpdateDataBase(int clientSocket, std::string updateDate);
 	static void UpdateUser(std::string newFileName);
+	static void GetLastPackage(int clientSocket);
+	static void WriteToLog(std::string currLog);
+	static void GetBetweenDates(int clientSocket, std::string betweenDate);
 
 	// OS dependent serverSockets
 #ifdef __linux__
@@ -103,8 +113,9 @@ private:
 	static std::vector<std::thread> clientThreads;
 	static std::string fileName;
 	static std::queue<std::string> databasePackageQueue;
-	static std::mutex mut;
-	static std::condition_variable condV;
+	static std::mutex databaseMutex;
+	static std::mutex logMut;
+	static char lastPackage[BUFFER_SIZE];
 };
 
 
