@@ -1,12 +1,12 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include <iostream>
 #include "server.h"
 
 
-int main(int argc, char** argv){
+int main(int argc, char** argv) {
 	Server test = Server();
 	int end;
-	
+
 
 #ifdef _WIN32
 	test.GetIPAddress();
@@ -17,6 +17,6 @@ int main(int argc, char** argv){
 	std::cin >> end;
 
 	test.CloseServer();
-	
+
 	return 0;
 }

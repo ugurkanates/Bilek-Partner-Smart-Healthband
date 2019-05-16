@@ -50,10 +50,11 @@
 #define DATE_BUFFER_SIZE 25
 #define HANDSHAKE_BUFFER 1
 #define DEFAULT_FILENAME "BilekPartner.csv"
+#define LOG_FILENAME "serverlog.txt"
 
 #define BP_MODE 1 // 0 ->Data tekli gelecek  |  1-> Data çoklu olarak gelecek
-#define DEBUG_DATA 0
-#define DEBUG_ACTIVITY 0
+#define DEBUG_DATA 0 // Shows all data recieved & sent
+#define DEBUG_ACTIVITY 1 // Shows connections. Similiart to log file
 #define DEBUG_BP 1 //Debug for BilekPartner
 
 /*
@@ -94,6 +95,8 @@ private:
 	static void UpdateDataBase(int clientSocket, std::string updateDate);
 	static void UpdateUser(std::string newFileName);
 	static void GetLastPackage(int clientSocket);
+	static void WriteToLog(std::string currLog);
+	static void GetBetweenDates(int clientSocket, std::string betweenDate);
 
 	// OS dependent serverSockets
 #ifdef __linux__
@@ -110,8 +113,8 @@ private:
 	static std::vector<std::thread> clientThreads;
 	static std::string fileName;
 	static std::queue<std::string> databasePackageQueue;
-	static std::mutex mut;
-	static std::condition_variable condV;
+	static std::mutex databaseMutex;
+	static std::mutex logMut;
 	static char lastPackage[BUFFER_SIZE];
 };
 
