@@ -549,6 +549,7 @@ void Server::HandleMobile(int clientSocket) {
 }
 
 void Server::FirstLoad(int clientSocket) {
+	bool clientConnected = true;
 
 	std::fstream wristBandFile;
 	if (DEBUG_ACTIVITY) std::cout << "#### Mobile Thread entered FirstLoad" << std::endl;
@@ -568,7 +569,7 @@ void Server::FirstLoad(int clientSocket) {
 	if (DEBUG_DATA) printf("Printing Database while sending it. Database name : %s\n\n", fileName.c_str());
 
 
-	for (std::string line; std::getline(wristBandFile, line); ) {
+	for (std::string line; std::getline(wristBandFile, line) && clientConnected; ) {
 
 		line += "\n";
 		if (DEBUG_DATA)	std::cout << line.c_str();
@@ -577,6 +578,7 @@ void Server::FirstLoad(int clientSocket) {
 		bytesSend = send(clientSocket, line.c_str(), strlen(line.c_str()) +1, DEFAULT);
 		if (bytesSend <= 0) {
 			std::cerr << "Failed to sent data to Mobile on FirstLoad Function \n";
+			clientConnected = false;
 		}
 	}
 	wristBandFile.close();
@@ -648,6 +650,7 @@ void Server::UpdateDataBase(int clientSocket, std::string updateDate) {
 	int res;
 	bool found = false;
 	int packageCount = 0;
+	bool clientConnected = true;
 
 	sscanf(updateDate.c_str(), "UD %4s-%2s-%2s %2s:%2s:%2s", year, month, day, hour, min, sec);
 	sprintf(date1, "%s%s%s%s%s%s", year, month, day, hour, min, sec);
@@ -663,7 +666,7 @@ void Server::UpdateDataBase(int clientSocket, std::string updateDate) {
 
 	std::ifstream wristBandFile(fileName);
 
-	for (std::string line; getline(wristBandFile, line);) {
+	for (std::string line; getline(wristBandFile, line) && clientConnected;) {
 
 		if (found) {
 			//SEND INFORMATION TO MOBILE
@@ -672,6 +675,7 @@ void Server::UpdateDataBase(int clientSocket, std::string updateDate) {
 			bytesSend = send(clientSocket, line.c_str(), strlen(line.c_str())+1, DEFAULT);
 			if (bytesSend <= ZERO) {
 				printf("Failed to send information to Mobile in UpdateDataBase function.\n");
+				clientConnected = false;
 			}
 			if (DEBUG_DATA) printf("UpdateDatabase -> %s", line.c_str());
 		}
@@ -716,7 +720,11 @@ void Server::UpdateUser(std::string newFileName) {
 	newFileName += ".csv";
 	fileName = newFileName;
 
+#ifdef _WIN32
 	if (std::filesystem::exists(DEFAULT_FILENAME) && !std::filesystem::exists(fileName)) { // File does not exits and defaultStorage file exists.
+#elif __linux__
+	if (std::experimental::filesystem::exists(DEFAULT_FILENAME) && !std::experimental::filesystem::exists(fileName)) { // File does not exits and defaultStorage file exists.
+#endif
 
 		source.open(DEFAULT_FILENAME, std::fstream::in);
 		dest.open(fileName, std::fstream::out);
