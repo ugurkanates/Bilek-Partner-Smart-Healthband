@@ -363,14 +363,22 @@ void Server::HandleWristband(int clientSocket, std::string wristBuffer) {
 			/******** END CRITICAL SECTION ********/
 
 		} else { // Multiple packages at once will be read
-			
+#ifdef _WIN32
 			packageSplitter = strtok_s(wristBandBuffer, "\n", &strtok_save1);
+#elif __linux__
+			packageSplitter = strtok_r(wristBandBuffer, "\n", &strtok_save1);
+#endif
 
 			strcpy(packageSplitter, packageSplitter + 2);
 			counter = 0;
 			while (packageSplitter != NULL) {
 
+#ifdef _WIN32
 				splitter = strtok_s(packageSplitter, "_", &strtok_save2);
+#elif __linux__
+				splitter = strtok_r(packageSplitter, "_", &strtok_save2);
+#endif
+				
 
 				// pX - pY - pZ - gX - gY - gZ - pulse - temp - battery(int) - devreSıcak
 
@@ -412,7 +420,13 @@ void Server::HandleWristband(int clientSocket, std::string wristBuffer) {
 						break;
 					}
 					++counter;
+					
+#ifdef _WIN32
 					splitter = strtok_s(NULL, "_", &strtok_save2);
+#elif __linux__
+					splitter = strtok_r(NULL, "_", &strtok_save2);
+#endif
+
 				}
 				++packageCount;
 				counter = 0;
@@ -454,7 +468,13 @@ void Server::HandleWristband(int clientSocket, std::string wristBuffer) {
 
 				/******** END CRITICAL SECTION ********/
 
+
+#ifdef _WIN32
 				packageSplitter = strtok_s(NULL, "\n", &strtok_save1);
+#elif __linux__
+				packageSplitter = strtok_r(NULL, "\n", &strtok_save1);
+#endif
+
 
 				if (packageSplitter != NULL) {
 					//packageSplitter = packageSplitter + 2;
@@ -498,6 +518,7 @@ void Server::HandleMobile(int clientSocket) {
 		// "US" -> "UpdateServer", takes packages from mobileApp to UpdateServer
 		// "UU *UserName*" -> "UpdateUser", takes an user name and updates server's database accordingly.
 		// "GL" -> "GetLastPackage", send last package written to database to mobileApp
+		// "GB Date1 Date" -> "GetBetweenDates", sends packages that are between given dates.
 		else {
 			if (DEBUG_DATA) std::cout << "Mobile command " << buffer << std::endl;
 			if (buffer[0] == 'F' && buffer[1] == 'L') {
