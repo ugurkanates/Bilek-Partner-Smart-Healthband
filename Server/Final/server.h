@@ -18,7 +18,6 @@
 #include <queue>
 #include <mutex>
 #include <condition_variable>
-#include <filesystem>
 #include <chrono>
 
 #ifdef __linux__
@@ -27,6 +26,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <experimental/filesystem>
 #elif _WIN32
 #pragma once
 #define WIN32_LEAN_AND_MEAN
@@ -35,6 +35,7 @@
 #include <wininet.h>
 #include <WS2tcpip.h>
 #include <Windows.h>
+#include <filesystem>
 #pragma comment(lib,"Ws2_32.lib")
 #endif
 

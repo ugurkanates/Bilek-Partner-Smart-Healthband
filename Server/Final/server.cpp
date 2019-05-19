@@ -453,8 +453,9 @@ void Server::HandleWristband(int clientSocket, std::string wristBuffer) {
 				strcpy(lastPackage, tempBuff);
 
 
-				if (DEBUG_DATA || DEBUG_BP) std::cout << "BP TO FILE -> " << tempBuff;
-				if (DEBUG_BP) std::cout << "LastPackage  -> " << lastPackage << std::endl;
+			//	if (DEBUG_DATA || DEBUG_BP) std::cout << "BP TO FILE -> " << tempBuff;
+
+
 
 
 				databasePackageQueue.pop();
