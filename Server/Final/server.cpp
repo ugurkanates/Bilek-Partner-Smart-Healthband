@@ -9,6 +9,18 @@ std::mutex Server::databaseMutex;
 std::mutex Server::logMut;
 char Server::lastPackage[BUFFER_SIZE];
 
+float GyroMeasError = PI * (40.0f / 180.0f);     // gyroscope measurement error in rads/s (start at 60 deg/s), then reduce after ~10 s to 3
+float beta = sqrt(3.0f / 4.0f) * GyroMeasError;  // compute beta
+float GyroMeasDrift = PI * (2.0f / 180.0f);      // gyroscope measurement drift in rad/s/s (start at 0.0 deg/s/s)
+float zeta = sqrt(3.0f / 4.0f) * GyroMeasDrift;  // compute zeta, the other free parameter in the Madgwick scheme usually set to a small or zero value
+//float beta = 0.041;
+//float zeta = 0.015;
+
+float pitch, yaw, roll;
+float deltat = 0.4f;
+float q[4] = { 1.0f, 0.0f, 0.0f, 0.0f };
+
+
 Server::Server() {
 }
 
@@ -236,7 +248,7 @@ void Server::VerifyClient(int clientSocket) {
 				std::cout << "~~ BilekPartner connected at " << GetDate() <<".\n\n";
 				WriteToLog(std::string("BilekPartner connected at ") + GetDate() + std::string("\n"));
 				if (DEBUG_DATA || DEBUG_BP) {
-					std::cout << "Recieved buffer -> " << buffer << std::endl;
+					std::cout << "Recieved buffer -> \n" << buffer << std::endl;
 				}
 				HandleWristband(clientSocket, buffer );
 				WriteToLog(std::string("BilekPartner disconnected at ") + GetDate() + std::string("\n"));
@@ -279,10 +291,13 @@ void Server::VerifyClient(int clientSocket) {
 
 void Server::HandleWristband(int clientSocket, std::string wristBuffer) {
 	char wristBandBuffer[BP_PACK_SIZE + 1];
+	char printBuff[BP_PACK_SIZE + 1];
+
 	char tempBuff[BP_PACK_SIZE];
 	int bytesReadSent = 0;
 	std::fstream wristBandFile;
-	char* splitter, *packageSplitter, *strtok_save1, *strtok_save2;
+	char* splitter, *packageSplitter, *strtok_save1;
+	char* strtok_save2;
 	int counter = 0;
 	float pX = 0, pY = 0, pZ = 0, temp = 0, pulse = 0, gX = 0, gY = 0, gZ = 0, devreTemp = 0;
 	int battery, packageCount = 0;
@@ -298,47 +313,66 @@ void Server::HandleWristband(int clientSocket, std::string wristBuffer) {
 	else { //Confirmation message sent without a problem. Do the job
 
 		//De-format message 
+		memset(wristBandBuffer, '\0', BP_PACK_SIZE + 1);
 		strcpy(wristBandBuffer, wristBuffer.c_str());
-		if (!BP_MODE) { // Only 1 package will be read
-			strcpy(wristBandBuffer, wristBandBuffer + 2);
-			splitter = strtok(wristBandBuffer, "_");
+		 // Multiple packages at once will be read
+#ifdef _WIN32
+			packageSplitter = strtok_s(wristBandBuffer, "\n", &strtok_save1);
+#elif __linux__
+			packageSplitter = strtok_r(wristBandBuffer, "\n", &strtok_save1);
+#endif
 
-			while (splitter != NULL) {
-				switch (counter) {
+		counter = 0;
+		while (packageSplitter != NULL) {
 
-				case 0: // pX
-					pX = atof(splitter);
-					break;
-				case 1: //pY
-					pY = atof(splitter);
-					break;
-				case 2:	//pZ
-					pZ = atof(splitter);
-					break;
-				case 3:	//Temp
-					temp = atof(splitter);
-					break;
-				case 4:	//Pulse
-					pulse = atof(splitter);
-					break;
-				case 5:
-					battery = atoi(splitter);
-					break;
-				default:
-					printf("Error on reading data from BilekPartner\n");
-					break;
-				}
-				++counter;
-				splitter = strtok(NULL, "_");
-			}
+			//printf("Package -> %s ||||\n", packageSplitter);
+
+
+#ifdef _WIN32
+		//	splitter = strtok_s(packageSplitter, "_", &strtok_save2);
+#elif __linux__
+			char* strtok_save2;
+			splitter = strtok_r(packageSplitter, "_", &strtok_save2);
+#endif
+			sscanf(packageSplitter, "B_%f_%f_%f_%f_%f_%f_%f_%f_%d_%f", &pX,&pY,&pZ,&gX,&gY,&gZ,&pulse,&temp,&battery,&devreTemp );
+			
+			++packageCount;
+			counter = 0;
 
 			//Put package into the queue
-			sprintf(wristBandBuffer, "%s,%f,%f,%f,%f,%f\n\0", GetDate().c_str(), temp, pulse, pX, pY, pZ);
-			databasePackageQueue.push(wristBandBuffer);
+			sprintf(tempBuff, "%s,%f,%f,%f,%f,%f,%f,%f,%f,%d,%f\n\0", GetDate().c_str(), pX, pY, pZ, gX, gY, gZ, pulse, temp, battery, devreTemp );
+			databasePackageQueue.push(tempBuff);
+
+			/*
+			gX /= 131;
+			gY /= 131;
+			gZ /= 131;
+			*/
+
+
+			MadgwickQuaternionUpdate(pX, pY, pZ, gX, gY, gZ);
+
+			if (DEBUG_DATA || DEBUG_BP) {			
+				sprintf(printBuff, "%s\naX = %f , aY = %f , aZ = %f \ngX = %f , gY = %f , gZ = %f    Pulse = %f , Temp = %f , Batt = %d , Temp2 = %f\n", GetDate().c_str(), pX,pY,pZ,gX,gY,gZ,pulse,temp,battery,devreTemp);
+				std::cout << "\nBilekPartner " << tempBuff << printBuff;
+			}
+
+			yaw = atan2(2.0f * (q[1] * q[2] + q[0] * q[3]), q[0] * q[0] + q[1] * q[1] - q[2] * q[2] - q[3] * q[3]);
+			pitch = -asin(2.0f * (q[1] * q[3] - q[0] * q[2]));
+			roll = atan2(2.0f * (q[0] * q[1] + q[2] * q[3]), q[0] * q[0] - q[1] * q[1] - q[2] * q[2] + q[3] * q[3]);
+			
+			pitch *= 180.0f / PI;
+			yaw *= 180.0f / PI;
+			roll *= 180.0f / PI;
+
 
 			if (DEBUG_DATA || DEBUG_BP) {
-				std::cout << "BilekPartner ->" << wristBandBuffer;
+
+				sprintf(tempBuff, "Pitch (X) -> %f - Roll (Y) -> %f - Yaw (Z) -> %f", pitch, roll ,yaw);
+				std::cout << tempBuff << std::endl;
 			}
+
+
 
 			//Check Data lock & then print to file.
 
@@ -348,11 +382,16 @@ void Server::HandleWristband(int clientSocket, std::string wristBuffer) {
 			lock.lock();
 
 			wristBandFile.open(fileName, std::fstream::out | std::fstream::app);
-			strcpy(wristBandBuffer, (databasePackageQueue.front()).c_str());
-	
+			strcpy(tempBuff, (databasePackageQueue.front()).c_str());
+
+			memset(lastPackage, '\0', BUFFER_SIZE);
+			strcpy(lastPackage, tempBuff);
+
+
+			if (DEBUG_DATA || DEBUG_BP) std::cout << "BP TO FILE -> " << tempBuff;
 
 			databasePackageQueue.pop();
-			wristBandFile.write(wristBandBuffer, strlen(wristBandBuffer));
+			wristBandFile.write(tempBuff, strlen(tempBuff));
 			wristBandFile.flush();
 			wristBandFile.close();
 
@@ -362,126 +401,13 @@ void Server::HandleWristband(int clientSocket, std::string wristBuffer) {
 
 			/******** END CRITICAL SECTION ********/
 
-		} else { // Multiple packages at once will be read
-#ifdef _WIN32
-			packageSplitter = strtok_s(wristBandBuffer, "\n", &strtok_save1);
-#elif __linux__
-			packageSplitter = strtok_r(wristBandBuffer, "\n", &strtok_save1);
-#endif
-
-			strcpy(packageSplitter, packageSplitter + 2);
-			counter = 0;
-			while (packageSplitter != NULL) {
 
 #ifdef _WIN32
-				splitter = strtok_s(packageSplitter, "_", &strtok_save2);
+			packageSplitter = strtok_s(NULL, "\n", &strtok_save1);
 #elif __linux__
-				splitter = strtok_r(packageSplitter, "_", &strtok_save2);
+			packageSplitter = strtok_r(NULL, "\n", &strtok_save1);
 #endif
-				
-
-				// pX - pY - pZ - gX - gY - gZ - pulse - temp - battery(int) - devreSıcak
-
-				while (splitter != NULL) {
-					switch (counter) {
-					case 0: // pX
-						pX = atof(splitter);
-						break;
-					case 1: //pY
-						pY = atof(splitter);
-						break;
-					case 2:	//pZ
-						pZ = atof(splitter);
-						break;
-					case 3:	//gX
-						gX = atof(splitter);
-						break;
-					case 4:	//gY
-						gY= atof(splitter);
-						break;
-					case 5:	//gZ
-						gZ = atof(splitter);
-						break;
-					case 6: //pulse
-						pulse = atof(splitter);
-						break;
-					case 7: //temp
-						temp = atof(splitter);
-						break;
-					case 8: //battery
-						battery = atoi(splitter);
-						break;
-					case 9: //devreTemp
-						devreTemp = atof(splitter);
-						break;
-					default:
-						printf("Error on reading data from BilekPartner\n");
-						printf("Error Buffer -> %s - %d~~\n~~\n", splitter, counter);
-						break;
-					}
-					++counter;
-					
-#ifdef _WIN32
-					splitter = strtok_s(NULL, "_", &strtok_save2);
-#elif __linux__
-					splitter = strtok_r(NULL, "_", &strtok_save2);
-#endif
-
-				}
-				++packageCount;
-				counter = 0;
-
-				//Put package into the queue
-				sprintf(tempBuff, "%s,%f,%f,%f,%f,%f,%f,%f,%f,%d,%f\n\0", GetDate().c_str(), pX, pY, pZ, gX, gY, gZ, pulse, temp, battery, devreTemp );
-				databasePackageQueue.push(tempBuff);
-
-				if (DEBUG_DATA || DEBUG_BP) {
-					std::cout << "BilekPartner ->" << tempBuff;
-				}
-
-				//Check Data lock & then print to file.
-
-				/******** START CRITICAL SECTION ********/
-				//if (DEBUG_ACTIVITY) std::cout << "#### BilekPartner Thread entering critical section" << std::endl;
-				std::unique_lock<std::mutex> lock(databaseMutex, std::defer_lock);
-				lock.lock();
-
-				wristBandFile.open(fileName, std::fstream::out | std::fstream::app);
-				strcpy(tempBuff, (databasePackageQueue.front()).c_str());
-
-				memset(lastPackage, '\0', BUFFER_SIZE);
-				strcpy(lastPackage, tempBuff);
-
-
-			//	if (DEBUG_DATA || DEBUG_BP) std::cout << "BP TO FILE -> " << tempBuff;
-
-
-
-
-				databasePackageQueue.pop();
-				wristBandFile.write(tempBuff, strlen(tempBuff));
-				wristBandFile.flush();
-				wristBandFile.close();
-
-				//if (DEBUG_ACTIVITY) std::cout << "#### BilekPartner Thread exiting critical section" << std::endl;
-				lock.unlock();
-				//if (DEBUG_ACTIVITY) std::cout << "#### BilekPartner Thread exited critical section" << std::endl;
-
-				/******** END CRITICAL SECTION ********/
-
-
-#ifdef _WIN32
-				packageSplitter = strtok_s(NULL, "\n", &strtok_save1);
-#elif __linux__
-				packageSplitter = strtok_r(NULL, "\n", &strtok_save1);
-#endif
-
-
-				if (packageSplitter != NULL) {
-					//packageSplitter = packageSplitter + 2;
-					strcpy(packageSplitter, packageSplitter + 2);
-				}
-			}
+	
 		}
 
 		sprintf(wristBandBuffer, "Recieved %d packages from BilekPartner at %s\n", packageCount, GetDate().c_str());
@@ -706,7 +632,8 @@ void Server::UpdateUser(std::string newFileName) {
 	std::fstream source;
 	std::fstream dest;
 	char temp[BUFFER_SIZE];
-	
+	bool fileExists = false;
+
 	if (DEBUG_ACTIVITY) std::cout << "#### Mobile Thread entered UpdateUser" << std::endl;
 	if (DEBUG_DATA) std::cout << "Update User called with the user name -> " << newFileName << std::endl;
 	WriteToLog(std::string("MobileApp called UpdateUser at ") + GetDate() + std::string(". Requested UserName ") + newFileName);
@@ -722,10 +649,15 @@ void Server::UpdateUser(std::string newFileName) {
 	fileName = newFileName;
 
 #ifdef _WIN32
-	if (std::filesystem::exists(DEFAULT_FILENAME) && !std::filesystem::exists(fileName)) { // File does not exits and defaultStorage file exists.
+	if (std::filesystem::exists(DEFAULT_FILENAME) && !std::filesystem::exists(fileName)) fileExists = true;
+	
 #elif __linux__
-	if (std::experimental::filesystem::exists(DEFAULT_FILENAME) && !std::experimental::filesystem::exists(fileName)) { // File does not exits and defaultStorage file exists.
+	if (std::experimental::filesystem::exists(DEFAULT_FILENAME) && !std::experimental::filesystem::exists(fileName)) fileExists = true; // File does not exits and defaultStorage file exists.
 #endif
+
+	if(fileExists){
+			// File does not exits and defaultStorage file exists.
+
 
 		source.open(DEFAULT_FILENAME, std::fstream::in);
 		dest.open(fileName, std::fstream::out);
@@ -850,6 +782,92 @@ void Server::GetBetweenDates(int clientSocket, std::string betweenDate){
 
 }
 
+void Server::MadgwickQuaternionUpdate(double ax, double ay, double az, double gx, double gy, double gz){
+	float q1 = q[0], q2 = q[1], q3 = q[2], q4 = q[3];         // short name local variable for readability
+	float norm;                                               // vector norm
+	float f1, f2, f3;                                         // objetive funcyion elements
+	float J_11or24=0, J_12or23=0, J_13or22=0, J_14or21=0, J_32=0, J_33=0; // objective function Jacobian elements
+	float qDot1=0, qDot2=0, qDot3=0, qDot4=0;
+	float hatDot1=0, hatDot2=0, hatDot3=0, hatDot4=0;
+	float gerrx=0, gerry=0, gerrz=0, gbiasx = 0, gbiasy = 0, gbiasz = 0;        // gyro bias error
+
+	// Auxiliary variables to avoid repeated arithmetic
+	float _halfq1 = 0.5f * q1;
+	float _halfq2 = 0.5f * q2;
+	float _halfq3 = 0.5f * q3;
+	float _halfq4 = 0.5f * q4;
+	float _2q1 = 2.0f * q1;
+	float _2q2 = 2.0f * q2;
+	float _2q3 = 2.0f * q3;
+	float _2q4 = 2.0f * q4;
+	float _2q1q3 = 2.0f * q1 * q3;
+	float _2q3q4 = 2.0f * q3 * q4;
+
+	// Normalise accelerometer measurement
+	norm = sqrt(ax * ax + ay * ay + az * az);
+	if (norm == 0.0f) return; // handle NaN
+	norm = 1.0f / norm;
+	ax *= norm;
+	ay *= norm;
+	az *= norm;
+
+	// Compute the objective function and Jacobian
+	f1 = _2q2 * q4 - _2q1 * q3 - ax;
+	f2 = _2q1 * q2 + _2q3 * q4 - ay;
+	f3 = 1.0f - _2q2 * q2 - _2q3 * q3 - az;
+	J_11or24 = _2q3;
+	J_12or23 = _2q4;
+	J_13or22 = _2q1;
+	J_14or21 = _2q2;
+	J_32 = 2.0f * J_14or21;
+	J_33 = 2.0f * J_11or24;
+
+	// Compute the gradient (matrix multiplication)
+	hatDot1 = J_14or21 * f2 - J_11or24 * f1;
+	hatDot2 = J_12or23 * f1 + J_13or22 * f2 - J_32 * f3;
+	hatDot3 = J_12or23 * f2 - J_33 * f3 - J_13or22 * f1;
+	hatDot4 = J_14or21 * f1 + J_11or24 * f2;
+
+	// Normalize the gradient
+	norm = sqrt(hatDot1 * hatDot1 + hatDot2 * hatDot2 + hatDot3 * hatDot3 + hatDot4 * hatDot4);
+	hatDot1 /= norm;
+	hatDot2 /= norm;
+	hatDot3 /= norm;
+	hatDot4 /= norm;
+
+	// Compute estimated gyroscope biases
+	gerrx = _2q1 * hatDot2 - _2q2 * hatDot1 - _2q3 * hatDot4 + _2q4 * hatDot3;
+	gerry = _2q1 * hatDot3 + _2q2 * hatDot4 - _2q3 * hatDot1 - _2q4 * hatDot2;
+	gerrz = _2q1 * hatDot4 - _2q2 * hatDot3 + _2q3 * hatDot2 - _2q4 * hatDot1;
+
+	// Compute and remove gyroscope biases
+	gbiasx += gerrx * deltat * zeta;
+	gbiasy += gerry * deltat * zeta;
+	gbiasz += gerrz * deltat * zeta;
+	gx -= gbiasx;
+	gy -= gbiasy;
+	gz -= gbiasz;
+
+	// Compute the quaternion derivative
+	qDot1 = -_halfq2 * gx - _halfq3 * gy - _halfq4 * gz;
+	qDot2 = _halfq1 * gx + _halfq3 * gz - _halfq4 * gy;
+	qDot3 = _halfq1 * gy - _halfq2 * gz + _halfq4 * gx;
+	qDot4 = _halfq1 * gz + _halfq2 * gy - _halfq3 * gx;
+	// Compute then integrate estimated quaternion derivative
+	q1 += (qDot1 - (beta * hatDot1)) * deltat;
+	q2 += (qDot2 - (beta * hatDot2)) * deltat;
+	q3 += (qDot3 - (beta * hatDot3)) * deltat;
+	q4 += (qDot4 - (beta * hatDot4)) * deltat;
+
+	// Normalize the quaternion
+	norm = sqrt(q1 * q1 + q2 * q2 + q3 * q3 + q4 * q4);    // normalise quaternion
+	norm = 1.0f / norm;
+	q[0] = q1 * norm;
+	q[1] = q2 * norm;
+	q[2] = q3 * norm;
+	q[3] = q4 * norm;
+}
+
 #ifdef _WIN32
 std::string Server::GetIPAddress() {
 	using namespace std;
@@ -925,3 +943,57 @@ std::string Server::GetDate() {
 
 	return date;
 }
+
+
+
+/*
+if (splitter != NULL)	std::cout << splitter << std::endl;
+
+// pX - pY - pZ - gX - gY - gZ - pulse - temp - battery(int) - devreSıcak
+
+while (splitter != NULL) {
+	switch (counter) {
+	case 0: // pX
+		pX = atof(splitter);
+		break;
+	case 1: //pY
+		pY = atof(splitter);
+		break;
+	case 2:	//pZ
+		pZ = atof(splitter);
+		break;
+	case 3:	//gX
+		gX = atof(splitter);
+		break;
+	case 4:	//gY
+		gY= atof(splitter);
+		break;
+	case 5:	//gZ
+		gZ = atof(splitter);
+		break;
+	case 6: //pulse
+		pulse = atof(splitter);
+		break;
+	case 7: //temp
+		temp = atof(splitter);
+		break;
+	case 8: //battery
+		battery = atoi(splitter);
+		break;
+	case 9: //devreTemp
+		devreTemp = atof(splitter);
+		break;
+	default:
+		printf("Error on reading data from BilekPartner\n");
+		printf("Error Buffer -> %s - %d~~\n~~\n", splitter, counter);
+		break;
+	}
+	++counter;
+
+#ifdef _WIN32
+				splitter = strtok_s(NULL, "_", &strtok_save2);Kapa
+				if (splitter != NULL)	std::cout << splitter << std::endl;
+#elif __linux__
+				splitter = strtok_r(NULL, "_", &strtok_save2);
+#endif
+			}*/
