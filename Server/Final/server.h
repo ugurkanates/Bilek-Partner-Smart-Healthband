@@ -99,7 +99,7 @@ private:
 	static void GetLastPackage(int clientSocket);
 	static void WriteToLog(std::string currLog);
 	static void GetBetweenDates(int clientSocket, std::string betweenDate);
-	static void MadgwickQuaternionUpdate(double ax, double ay, double az, double gx, double gy, double gz);
+	
 
 	// OS dependent serverSockets
 #ifdef __linux__
