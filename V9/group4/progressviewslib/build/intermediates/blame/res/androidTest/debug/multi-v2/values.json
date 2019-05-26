@@ -1,0 +1,36 @@
+{
+    "logs": [
+        {
+            "outputFile": "C:\\proje son\\group4\\progressviewslib\\build\\intermediates\\res\\merged\\androidTest\\debug\\values\\values.xml",
+            "map": [
+                {
+                    "source": "C:\\proje son\\group4\\progressviewslib\\build\\intermediates\\packaged_res\\debug\\values\\values.xml",
+                    "from": {
+                        "startLines": "2,3,4,6,7,8,9,10,11,12,13,14,21",
+                        "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4",
+                        "startOffsets": "55,106,155,568,626,682,744,795,847,898,951,997,1259",
+                        "endLines": "2,3,4,6,7,8,9,10,11,12,13,20,23",
+                        "endColumns": "50,48,46,57,55,61,50,51,50,52,45,12,12",
+                        "endOffsets": "101,150,197,621,677,739,790,842,893,946,992,1254,1414"
+                    }
+                }
+            ]
+        },
+        {
+            "outputFile": "C:\\proje son\\group4\\progressviewslib\\build\\intermediates\\incremental\\mergeDebugAndroidTestResources\\merged.dir\\values\\values.xml",
+            "map": [
+                {
+                    "source": "C:\\proje son\\group4\\progressviewslib\\build\\intermediates\\packaged_res\\debug\\values\\values.xml",
+                    "from": {
+                        "startLines": "2,3,4,6,7,8,9,10,11,12,13,14,21",
+                        "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4",
+                        "startOffsets": "55,106,155,568,626,682,744,795,847,898,951,997,1259",
+                        "endLines": "2,3,4,6,7,8,9,10,11,12,13,20,23",
+                        "endColumns": "50,48,46,57,55,61,50,51,50,52,45,12,12",
+                        "endOffsets": "101,150,197,621,677,739,790,842,893,946,992,1254,1414"
+                    }
+                }
+            ]
+        }
+    ]
+}
