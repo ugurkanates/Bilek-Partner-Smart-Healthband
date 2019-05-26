@@ -44,10 +44,11 @@
 #define ERROR_CODE -1
 #define ERROR 0
 #define DEFAULT 0
+#define PI 3.141592
 #define WS_VERSION 0x0202
 #define SERVER_PORT 1379  // Serverýn Public olarak çalýþmasý için, modeminizden program çalýþtýrýldýðý zaman yazan IP'ye bu PORT'u Forwardlamanýz gerekmektedir. 
 #define BUFFER_SIZE 256
-#define BP_PACK_SIZE 1280
+#define BP_PACK_SIZE 800
 #define DATE_BUFFER_SIZE 25
 #define HANDSHAKE_BUFFER 1
 #define DEFAULT_FILENAME "BilekPartner.csv"
@@ -98,6 +99,7 @@ private:
 	static void GetLastPackage(int clientSocket);
 	static void WriteToLog(std::string currLog);
 	static void GetBetweenDates(int clientSocket, std::string betweenDate);
+	
 
 	// OS dependent serverSockets
 #ifdef __linux__
