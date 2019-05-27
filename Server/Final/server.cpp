@@ -1,3 +1,4 @@
+﻿#include "pch.h"
 #include "server.h"
 
 bool Server::serverOn = true;
@@ -7,7 +8,6 @@ std::queue<std::string> Server::databasePackageQueue;
 std::mutex Server::databaseMutex;
 std::mutex Server::logMut;
 char Server::lastPackage[BUFFER_SIZE];
-
 
 Server::Server() {
 }
@@ -313,15 +313,6 @@ void Server::HandleWristband(int clientSocket, std::string wristBuffer) {
 		counter = 0;
 		while (packageSplitter != NULL) {
 
-			//printf("Package -> %s ||||\n", packageSplitter);
-
-
-#ifdef _WIN32
-		//	splitter = strtok_s(packageSplitter, "_", &strtok_save2);
-#elif __linux__
-			char* strtok_save2;
-			splitter = strtok_r(packageSplitter, "_", &strtok_save2);
-#endif
 			sscanf(packageSplitter, "B_%f_%f_%f_%f_%f_%f_%f_%f_%d_%f", &pX,&pY,&pZ,&gX,&gY,&gZ,&pulse,&temp,&battery,&devreTemp );
 			
 			++packageCount;
@@ -331,16 +322,10 @@ void Server::HandleWristband(int clientSocket, std::string wristBuffer) {
 			sprintf(tempBuff, "%s,%f,%f,%f,%f,%f,%f,%f,%f,%d,%f\n\0", GetDate().c_str(), pX, pY, pZ, gX, gY, gZ, pulse, temp, battery, devreTemp );
 			databasePackageQueue.push(tempBuff);
 
-
-			
-
 			if (DEBUG_DATA || DEBUG_BP) {			
 				sprintf(printBuff, "%s\naX = %f , aY = %f , aZ = %f \ngX = %f , gY = %f , gZ = %f    Pulse = %f , Temp = %f , Batt = %d , Temp2 = %f\n", GetDate().c_str(), pX,pY,pZ,gX,gY,gZ,pulse,temp,battery,devreTemp);
 				std::cout << "\nBilekPartner " << tempBuff << printBuff;
 			}
-
-			
-
 
 			if (DEBUG_DATA || DEBUG_BP) {
 				std::cout << tempBuff << std::endl;
@@ -439,6 +424,9 @@ void Server::HandleMobile(int clientSocket) {
 			}
 			else if (buffer[0] == 'G' && buffer[1] == 'B') {
 				GetBetweenDates(clientSocket, buffer);
+			}
+			else if (buffer[0] == 'R' && buffer[1] == 'E') {
+				SendRead(clientSocket);
 			}
 			else {
 				std::cerr << "Unknown command from MobileApp -> " << buffer << std::endl;
@@ -754,6 +742,35 @@ void Server::GetBetweenDates(int clientSocket, std::string betweenDate){
 
 
 
+}
+
+void Server::SendRead(int clientSocket){
+
+	int bytesSend;
+	int packageCount = 0;
+	bool clientConnected = true;
+
+	/**************** START CRIT SECTION *********************/
+	std::unique_lock<std::mutex> lock(databaseMutex, std::defer_lock);
+	lock.lock();
+
+
+	std::ifstream wristBandFile("read.csv");
+
+	for (std::string line; getline(wristBandFile, line) && clientConnected;) {		
+		line += "\n"; 
+		++packageCount;
+
+		bytesSend = send(clientSocket, line.c_str(), strlen(line.c_str()) + 1, DEFAULT);
+		if (bytesSend <= ZERO) {
+			printf("Failed to send information to Mobile in UpdateDataBase function.\n");
+			clientConnected = false;
+		}
+	}
+
+	wristBandFile.close();
+	lock.unlock();
+	/**************** END CRIT SECTION *********************/
 }
 
 #ifdef _WIN32

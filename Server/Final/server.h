@@ -55,9 +55,9 @@
 #define LOG_FILENAME "serverlog.txt"
 
 #define BP_MODE 1 // 0 ->Data tekli gelecek  |  1-> Data çoklu olarak gelecek
-#define DEBUG_DATA 0 // Shows all data recieved & sent
-#define DEBUG_ACTIVITY 1 // Shows connections. Similiart to log file
-#define DEBUG_BP 1 //Debug for BilekPartner
+#define DEBUG_DATA 1 // Shows all data recieved & sent
+#define DEBUG_ACTIVITY 0 // Shows connections. Similiart to log file
+#define DEBUG_BP 0 //Debug for BilekPartner
 
 /*
 struct WristBandDataPackage {
@@ -99,7 +99,7 @@ private:
 	static void GetLastPackage(int clientSocket);
 	static void WriteToLog(std::string currLog);
 	static void GetBetweenDates(int clientSocket, std::string betweenDate);
-	
+	static void SendRead(int clientSocket);
 
 	// OS dependent serverSockets
 #ifdef __linux__
