@@ -1,4 +1,0 @@
-include ':app', ':progressviewslib'
-include ':WekaAndroid'
-include ':HARLib'
-include ':HARDemo'
