@@ -1,7 +1,7 @@
 # Bilek-Partner-Smart-Healthband
 This is repository of both Mobile Application layer of Bilek Partner - Smart Health Band Project  and Embedded Software for project.
 
-## PROJE ÖZETİ
+## PROJECT SUMMARY
 Main purpose of Bilek Partner is to get physical activity data of customer,interpret current activity & step counter and show them dynamically with useful Mobile Interface on Android device.
    Device is working with ESP32 WiFi MCU and collects data from various sensors
    to calculate if user movement , heart rate analysis , tempeature calculcation and step counter. It has android component developed with Android studio to get graphics , animations and more with user friendly interface.
