@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<RelativeLayout xmlns:tools="http://schemas.android.com/tools"
+    android:background="@color/white" android:padding="20dp"
+    android:layout_height="match_parent" android:layout_width="match_parent" xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <Button
+        android:id="@+id/b7"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="15dp"
+        android:background="@drawable/yellow_style"
+        android:onClick="onClick"
+        android:text="Grafik Tum Hareket"
+        android:textColor="@android:color/black" />
+
+    <Button
+        android:id="@+id/b2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="168dp"
+        android:background="@drawable/yellow_style"
+        android:onClick="onClick"
+        android:text="Grafik Merdiven"
+        android:textColor="@android:color/black" />
+
+    <Button
+        android:id="@+id/b8"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="519dp"
+        android:background="@drawable/yellow_style"
+        android:onClick="onClick"
+        android:text="ADIM SAYAR"
+        android:textColor="@android:color/black" />
+
+    <Button
+        android:id="@+id/b5"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="374dp"
+        android:background="@drawable/yellow_style"
+        android:onClick="onClick"
+        android:text="Grafik Ayakta durma"
+        android:textColor="@android:color/black" />
+
+    <Button
+        android:id="@+id/b25"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="449dp"
+        android:background="@drawable/yellow_style"
+        android:onClick="onClick"
+        android:text="Grafik Dinlenme"
+        android:textColor="@android:color/black" />
+
+    <Button
+        android:id="@+id/b3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="304dp"
+        android:background="@drawable/yellow_style"
+        android:onClick="onClick"
+        android:text="Grafik oturma"
+        android:textColor="@android:color/black" />
+
+    <Button
+        android:id="@+id/b1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="236dp"
+        android:background="@drawable/yellow_style"
+        android:onClick="onClick"
+        android:text="Grafik yuruyus"
+        android:textColor="@android:color/black" />
+
+
+    <Button
+        android:id="@+id/b4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="95dp"
+        android:background="@drawable/yellow_style"
+        android:onClick="onClick"
+        android:text="Grafik Kosu"
+        android:textColor="@android:color/black" />
+
+</RelativeLayout>

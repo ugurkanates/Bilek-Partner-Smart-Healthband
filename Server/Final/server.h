@@ -18,7 +18,6 @@
 #include <queue>
 #include <mutex>
 #include <condition_variable>
-#include <filesystem>
 #include <chrono>
 
 #ifdef __linux__
@@ -27,6 +26,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <experimental/filesystem>
 #elif _WIN32
 #pragma once
 #define WIN32_LEAN_AND_MEAN
@@ -35,6 +35,7 @@
 #include <wininet.h>
 #include <WS2tcpip.h>
 #include <Windows.h>
+#include <filesystem>
 #pragma comment(lib,"Ws2_32.lib")
 #endif
 
@@ -43,19 +44,20 @@
 #define ERROR_CODE -1
 #define ERROR 0
 #define DEFAULT 0
+#define PI 3.141592
 #define WS_VERSION 0x0202
 #define SERVER_PORT 1379  // Serverýn Public olarak çalýþmasý için, modeminizden program çalýþtýrýldýðý zaman yazan IP'ye bu PORT'u Forwardlamanýz gerekmektedir. 
 #define BUFFER_SIZE 256
-#define BP_PACK_SIZE 1280
+#define BP_PACK_SIZE 800
 #define DATE_BUFFER_SIZE 25
 #define HANDSHAKE_BUFFER 1
 #define DEFAULT_FILENAME "BilekPartner.csv"
 #define LOG_FILENAME "serverlog.txt"
 
 #define BP_MODE 1 // 0 ->Data tekli gelecek  |  1-> Data çoklu olarak gelecek
-#define DEBUG_DATA 0 // Shows all data recieved & sent
-#define DEBUG_ACTIVITY 1 // Shows connections. Similiart to log file
-#define DEBUG_BP 1 //Debug for BilekPartner
+#define DEBUG_DATA 1 // Shows all data recieved & sent
+#define DEBUG_ACTIVITY 0 // Shows connections. Similiart to log file
+#define DEBUG_BP 0 //Debug for BilekPartner
 
 /*
 struct WristBandDataPackage {
@@ -97,6 +99,7 @@ private:
 	static void GetLastPackage(int clientSocket);
 	static void WriteToLog(std::string currLog);
 	static void GetBetweenDates(int clientSocket, std::string betweenDate);
+	static void SendRead(int clientSocket);
 
 	// OS dependent serverSockets
 #ifdef __linux__

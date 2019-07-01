@@ -1,7 +1,0 @@
-#Internal package file, do not edit.
-#Tue May 14 01:57:18 EET 2019
-0.baseType=DIRECTORY
-0.base=C\:\\proje son\\group4\\HARDemo\\build\\intermediates\\transforms\\dexMerger\\debug\\0
-0.path=classes.dex
-0.set=DEX
-count=1

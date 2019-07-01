@@ -236,7 +236,7 @@ void Server::VerifyClient(int clientSocket) {
 				std::cout << "~~ BilekPartner connected at " << GetDate() <<".\n\n";
 				WriteToLog(std::string("BilekPartner connected at ") + GetDate() + std::string("\n"));
 				if (DEBUG_DATA || DEBUG_BP) {
-					std::cout << "Recieved buffer -> " << buffer << std::endl;
+					std::cout << "Recieved buffer -> \n" << buffer << std::endl;
 				}
 				HandleWristband(clientSocket, buffer );
 				WriteToLog(std::string("BilekPartner disconnected at ") + GetDate() + std::string("\n"));
@@ -279,10 +279,13 @@ void Server::VerifyClient(int clientSocket) {
 
 void Server::HandleWristband(int clientSocket, std::string wristBuffer) {
 	char wristBandBuffer[BP_PACK_SIZE + 1];
+	char printBuff[BP_PACK_SIZE + 1];
+
 	char tempBuff[BP_PACK_SIZE];
 	int bytesReadSent = 0;
 	std::fstream wristBandFile;
-	char* splitter, *packageSplitter, *strtok_save1, *strtok_save2;
+	char* splitter, *packageSplitter, *strtok_save1;
+	char* strtok_save2;
 	int counter = 0;
 	float pX = 0, pY = 0, pZ = 0, temp = 0, pulse = 0, gX = 0, gY = 0, gZ = 0, devreTemp = 0;
 	int battery, packageCount = 0;
@@ -298,47 +301,37 @@ void Server::HandleWristband(int clientSocket, std::string wristBuffer) {
 	else { //Confirmation message sent without a problem. Do the job
 
 		//De-format message 
+		memset(wristBandBuffer, '\0', BP_PACK_SIZE + 1);
 		strcpy(wristBandBuffer, wristBuffer.c_str());
-		if (!BP_MODE) { // Only 1 package will be read
-			strcpy(wristBandBuffer, wristBandBuffer + 2);
-			splitter = strtok(wristBandBuffer, "_");
+		 // Multiple packages at once will be read
+#ifdef _WIN32
+			packageSplitter = strtok_s(wristBandBuffer, "\n", &strtok_save1);
+#elif __linux__
+			packageSplitter = strtok_r(wristBandBuffer, "\n", &strtok_save1);
+#endif
 
-			while (splitter != NULL) {
-				switch (counter) {
+		counter = 0;
+		while (packageSplitter != NULL) {
 
-				case 0: // pX
-					pX = atof(splitter);
-					break;
-				case 1: //pY
-					pY = atof(splitter);
-					break;
-				case 2:	//pZ
-					pZ = atof(splitter);
-					break;
-				case 3:	//Temp
-					temp = atof(splitter);
-					break;
-				case 4:	//Pulse
-					pulse = atof(splitter);
-					break;
-				case 5:
-					battery = atoi(splitter);
-					break;
-				default:
-					printf("Error on reading data from BilekPartner\n");
-					break;
-				}
-				++counter;
-				splitter = strtok(NULL, "_");
-			}
+			sscanf(packageSplitter, "B_%f_%f_%f_%f_%f_%f_%f_%f_%d_%f", &pX,&pY,&pZ,&gX,&gY,&gZ,&pulse,&temp,&battery,&devreTemp );
+			
+			++packageCount;
+			counter = 0;
 
 			//Put package into the queue
-			sprintf(wristBandBuffer, "%s,%f,%f,%f,%f,%f\n\0", GetDate().c_str(), temp, pulse, pX, pY, pZ);
-			databasePackageQueue.push(wristBandBuffer);
+			sprintf(tempBuff, "%s,%f,%f,%f,%f,%f,%f,%f,%f,%d,%f\n\0", GetDate().c_str(), pX, pY, pZ, gX, gY, gZ, pulse, temp, battery, devreTemp );
+			databasePackageQueue.push(tempBuff);
+
+			if (DEBUG_DATA || DEBUG_BP) {			
+				sprintf(printBuff, "%s\naX = %f , aY = %f , aZ = %f \ngX = %f , gY = %f , gZ = %f    Pulse = %f , Temp = %f , Batt = %d , Temp2 = %f\n", GetDate().c_str(), pX,pY,pZ,gX,gY,gZ,pulse,temp,battery,devreTemp);
+				std::cout << "\nBilekPartner " << tempBuff << printBuff;
+			}
 
 			if (DEBUG_DATA || DEBUG_BP) {
-				std::cout << "BilekPartner ->" << wristBandBuffer;
+				std::cout << tempBuff << std::endl;
 			}
+
+
 
 			//Check Data lock & then print to file.
 
@@ -348,11 +341,16 @@ void Server::HandleWristband(int clientSocket, std::string wristBuffer) {
 			lock.lock();
 
 			wristBandFile.open(fileName, std::fstream::out | std::fstream::app);
-			strcpy(wristBandBuffer, (databasePackageQueue.front()).c_str());
-	
+			strcpy(tempBuff, (databasePackageQueue.front()).c_str());
+
+			memset(lastPackage, '\0', BUFFER_SIZE);
+			strcpy(lastPackage, tempBuff);
+
+
+			if (DEBUG_DATA || DEBUG_BP) std::cout << "BP TO FILE -> " << tempBuff;
 
 			databasePackageQueue.pop();
-			wristBandFile.write(wristBandBuffer, strlen(wristBandBuffer));
+			wristBandFile.write(tempBuff, strlen(tempBuff));
 			wristBandFile.flush();
 			wristBandFile.close();
 
@@ -362,105 +360,13 @@ void Server::HandleWristband(int clientSocket, std::string wristBuffer) {
 
 			/******** END CRITICAL SECTION ********/
 
-		} else { // Multiple packages at once will be read
-			
-			packageSplitter = strtok_s(wristBandBuffer, "\n", &strtok_save1);
 
-			strcpy(packageSplitter, packageSplitter + 2);
-			counter = 0;
-			while (packageSplitter != NULL) {
-
-				splitter = strtok_s(packageSplitter, "_", &strtok_save2);
-
-				// pX - pY - pZ - gX - gY - gZ - pulse - temp - battery(int) - devreSıcak
-
-				while (splitter != NULL) {
-					switch (counter) {
-					case 0: // pX
-						pX = atof(splitter);
-						break;
-					case 1: //pY
-						pY = atof(splitter);
-						break;
-					case 2:	//pZ
-						pZ = atof(splitter);
-						break;
-					case 3:	//gX
-						gX = atof(splitter);
-						break;
-					case 4:	//gY
-						gY= atof(splitter);
-						break;
-					case 5:	//gZ
-						gZ = atof(splitter);
-						break;
-					case 6: //pulse
-						pulse = atof(splitter);
-						break;
-					case 7: //temp
-						temp = atof(splitter);
-						break;
-					case 8: //battery
-						battery = atoi(splitter);
-						break;
-					case 9: //devreTemp
-						devreTemp = atof(splitter);
-						break;
-					default:
-						printf("Error on reading data from BilekPartner\n");
-						printf("Error Buffer -> %s - %d~~\n~~\n", splitter, counter);
-						break;
-					}
-					++counter;
-					splitter = strtok_s(NULL, "_", &strtok_save2);
-				}
-				++packageCount;
-				counter = 0;
-
-				//Put package into the queue
-				sprintf(tempBuff, "%s,%f,%f,%f,%f,%f,%f,%f,%f,%d,%f\n\0", GetDate().c_str(), pX, pY, pZ, gX, gY, gZ, pulse, temp, battery, devreTemp );
-				databasePackageQueue.push(tempBuff);
-
-				if (DEBUG_DATA || DEBUG_BP) {
-					std::cout << "BilekPartner ->" << tempBuff;
-				}
-
-				//Check Data lock & then print to file.
-
-				/******** START CRITICAL SECTION ********/
-				//if (DEBUG_ACTIVITY) std::cout << "#### BilekPartner Thread entering critical section" << std::endl;
-				std::unique_lock<std::mutex> lock(databaseMutex, std::defer_lock);
-				lock.lock();
-
-				wristBandFile.open(fileName, std::fstream::out | std::fstream::app);
-				strcpy(tempBuff, (databasePackageQueue.front()).c_str());
-
-				memset(lastPackage, '\0', BUFFER_SIZE);
-				strcpy(lastPackage, tempBuff);
-
-
-				if (DEBUG_DATA || DEBUG_BP) std::cout << "BP TO FILE -> " << tempBuff;
-				if (DEBUG_BP) std::cout << "LastPackage  -> " << lastPackage << std::endl;
-
-
-				databasePackageQueue.pop();
-				wristBandFile.write(tempBuff, strlen(tempBuff));
-				wristBandFile.flush();
-				wristBandFile.close();
-
-				//if (DEBUG_ACTIVITY) std::cout << "#### BilekPartner Thread exiting critical section" << std::endl;
-				lock.unlock();
-				//if (DEBUG_ACTIVITY) std::cout << "#### BilekPartner Thread exited critical section" << std::endl;
-
-				/******** END CRITICAL SECTION ********/
-
-				packageSplitter = strtok_s(NULL, "\n", &strtok_save1);
-
-				if (packageSplitter != NULL) {
-					//packageSplitter = packageSplitter + 2;
-					strcpy(packageSplitter, packageSplitter + 2);
-				}
-			}
+#ifdef _WIN32
+			packageSplitter = strtok_s(NULL, "\n", &strtok_save1);
+#elif __linux__
+			packageSplitter = strtok_r(NULL, "\n", &strtok_save1);
+#endif
+	
 		}
 
 		sprintf(wristBandBuffer, "Recieved %d packages from BilekPartner at %s\n", packageCount, GetDate().c_str());
@@ -498,6 +404,7 @@ void Server::HandleMobile(int clientSocket) {
 		// "US" -> "UpdateServer", takes packages from mobileApp to UpdateServer
 		// "UU *UserName*" -> "UpdateUser", takes an user name and updates server's database accordingly.
 		// "GL" -> "GetLastPackage", send last package written to database to mobileApp
+		// "GB Date1 Date" -> "GetBetweenDates", sends packages that are between given dates.
 		else {
 			if (DEBUG_DATA) std::cout << "Mobile command " << buffer << std::endl;
 			if (buffer[0] == 'F' && buffer[1] == 'L') {
@@ -518,6 +425,9 @@ void Server::HandleMobile(int clientSocket) {
 			else if (buffer[0] == 'G' && buffer[1] == 'B') {
 				GetBetweenDates(clientSocket, buffer);
 			}
+			else if (buffer[0] == 'R' && buffer[1] == 'E') {
+				SendRead(clientSocket);
+			}
 			else {
 				std::cerr << "Unknown command from MobileApp -> " << buffer << std::endl;
 				clientConnected = false;
@@ -528,6 +438,7 @@ void Server::HandleMobile(int clientSocket) {
 }
 
 void Server::FirstLoad(int clientSocket) {
+	bool clientConnected = true;
 
 	std::fstream wristBandFile;
 	if (DEBUG_ACTIVITY) std::cout << "#### Mobile Thread entered FirstLoad" << std::endl;
@@ -547,7 +458,7 @@ void Server::FirstLoad(int clientSocket) {
 	if (DEBUG_DATA) printf("Printing Database while sending it. Database name : %s\n\n", fileName.c_str());
 
 
-	for (std::string line; std::getline(wristBandFile, line); ) {
+	for (std::string line; std::getline(wristBandFile, line) && clientConnected; ) {
 
 		line += "\n";
 		if (DEBUG_DATA)	std::cout << line.c_str();
@@ -556,6 +467,7 @@ void Server::FirstLoad(int clientSocket) {
 		bytesSend = send(clientSocket, line.c_str(), strlen(line.c_str()) +1, DEFAULT);
 		if (bytesSend <= 0) {
 			std::cerr << "Failed to sent data to Mobile on FirstLoad Function \n";
+			clientConnected = false;
 		}
 	}
 	wristBandFile.close();
@@ -627,6 +539,7 @@ void Server::UpdateDataBase(int clientSocket, std::string updateDate) {
 	int res;
 	bool found = false;
 	int packageCount = 0;
+	bool clientConnected = true;
 
 	sscanf(updateDate.c_str(), "UD %4s-%2s-%2s %2s:%2s:%2s", year, month, day, hour, min, sec);
 	sprintf(date1, "%s%s%s%s%s%s", year, month, day, hour, min, sec);
@@ -642,7 +555,7 @@ void Server::UpdateDataBase(int clientSocket, std::string updateDate) {
 
 	std::ifstream wristBandFile(fileName);
 
-	for (std::string line; getline(wristBandFile, line);) {
+	for (std::string line; getline(wristBandFile, line) && clientConnected;) {
 
 		if (found) {
 			//SEND INFORMATION TO MOBILE
@@ -651,6 +564,7 @@ void Server::UpdateDataBase(int clientSocket, std::string updateDate) {
 			bytesSend = send(clientSocket, line.c_str(), strlen(line.c_str())+1, DEFAULT);
 			if (bytesSend <= ZERO) {
 				printf("Failed to send information to Mobile in UpdateDataBase function.\n");
+				clientConnected = false;
 			}
 			if (DEBUG_DATA) printf("UpdateDatabase -> %s", line.c_str());
 		}
@@ -680,7 +594,8 @@ void Server::UpdateUser(std::string newFileName) {
 	std::fstream source;
 	std::fstream dest;
 	char temp[BUFFER_SIZE];
-	
+	bool fileExists = false;
+
 	if (DEBUG_ACTIVITY) std::cout << "#### Mobile Thread entered UpdateUser" << std::endl;
 	if (DEBUG_DATA) std::cout << "Update User called with the user name -> " << newFileName << std::endl;
 	WriteToLog(std::string("MobileApp called UpdateUser at ") + GetDate() + std::string(". Requested UserName ") + newFileName);
@@ -695,7 +610,16 @@ void Server::UpdateUser(std::string newFileName) {
 	newFileName += ".csv";
 	fileName = newFileName;
 
-	if (std::filesystem::exists(DEFAULT_FILENAME) && !std::filesystem::exists(fileName)) { // File does not exits and defaultStorage file exists.
+#ifdef _WIN32
+	if (std::filesystem::exists(DEFAULT_FILENAME) && !std::filesystem::exists(fileName)) fileExists = true;
+	
+#elif __linux__
+	if (std::experimental::filesystem::exists(DEFAULT_FILENAME) && !std::experimental::filesystem::exists(fileName)) fileExists = true; // File does not exits and defaultStorage file exists.
+#endif
+
+	if(fileExists){
+			// File does not exits and defaultStorage file exists.
+
 
 		source.open(DEFAULT_FILENAME, std::fstream::in);
 		dest.open(fileName, std::fstream::out);
@@ -820,6 +744,35 @@ void Server::GetBetweenDates(int clientSocket, std::string betweenDate){
 
 }
 
+void Server::SendRead(int clientSocket){
+
+	int bytesSend;
+	int packageCount = 0;
+	bool clientConnected = true;
+
+	/**************** START CRIT SECTION *********************/
+	std::unique_lock<std::mutex> lock(databaseMutex, std::defer_lock);
+	lock.lock();
+
+
+	std::ifstream wristBandFile("read.csv");
+
+	for (std::string line; getline(wristBandFile, line) && clientConnected;) {		
+		line += "\n"; 
+		++packageCount;
+
+		bytesSend = send(clientSocket, line.c_str(), strlen(line.c_str()) + 1, DEFAULT);
+		if (bytesSend <= ZERO) {
+			printf("Failed to send information to Mobile in UpdateDataBase function.\n");
+			clientConnected = false;
+		}
+	}
+
+	wristBandFile.close();
+	lock.unlock();
+	/**************** END CRIT SECTION *********************/
+}
+
 #ifdef _WIN32
 std::string Server::GetIPAddress() {
 	using namespace std;
@@ -895,3 +848,57 @@ std::string Server::GetDate() {
 
 	return date;
 }
+
+
+
+/*
+if (splitter != NULL)	std::cout << splitter << std::endl;
+
+// pX - pY - pZ - gX - gY - gZ - pulse - temp - battery(int) - devreSıcak
+
+while (splitter != NULL) {
+	switch (counter) {
+	case 0: // pX
+		pX = atof(splitter);
+		break;
+	case 1: //pY
+		pY = atof(splitter);
+		break;
+	case 2:	//pZ
+		pZ = atof(splitter);
+		break;
+	case 3:	//gX
+		gX = atof(splitter);
+		break;
+	case 4:	//gY
+		gY= atof(splitter);
+		break;
+	case 5:	//gZ
+		gZ = atof(splitter);
+		break;
+	case 6: //pulse
+		pulse = atof(splitter);
+		break;
+	case 7: //temp
+		temp = atof(splitter);
+		break;
+	case 8: //battery
+		battery = atoi(splitter);
+		break;
+	case 9: //devreTemp
+		devreTemp = atof(splitter);
+		break;
+	default:
+		printf("Error on reading data from BilekPartner\n");
+		printf("Error Buffer -> %s - %d~~\n~~\n", splitter, counter);
+		break;
+	}
+	++counter;
+
+#ifdef _WIN32
+				splitter = strtok_s(NULL, "_", &strtok_save2);Kapa
+				if (splitter != NULL)	std::cout << splitter << std::endl;
+#elif __linux__
+				splitter = strtok_r(NULL, "_", &strtok_save2);
+#endif
+			}*/

@@ -1,0 +1,23 @@
+com.natasa.progressviews
+attr bar_color
+attr bar_width
+attr progress
+attr progress_color
+attr progress_width
+attr text_color
+attr text_size
+color background_color
+color progress_color
+color shader_color
+dimen activity_horizontal_margin
+dimen activity_vertical_margin
+dimen default_background_stroke_width
+dimen default_stroke_width
+drawable ic_launcher
+string action_settings
+string app_name
+string hello_world
+string progress
+style AppBaseTheme
+style AppTheme
+styleable CircleProgressBar bar_color bar_width progress progress_color progress_width text_color text_size
